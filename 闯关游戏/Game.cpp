@@ -11,7 +11,8 @@
 #include <gl\gl.h>			// Header File For The OpenGL32 Library
 #include <gl\glu.h>			// Header File For The GLu32 Library
 #include <gl\glaux.h>		// Header File For The Glaux Library
-#include "background.cpp"
+#include "stdafx.h"
+#include "Class.h"
 
 HDC			hDC=NULL;		// Private GDI Device Context
 HGLRC		hRC=NULL;		// Permanent Rendering Context
@@ -22,9 +23,31 @@ bool	keys[256];			// Array Used For The Keyboard Routine
 bool	active=TRUE;		// Window Active Flag Set To TRUE By Default
 bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
 
-GLuint	texture[7];			// Storage For 7 Textures
+GLuint	texture[12];			// Storage For 7 Textures
+int	move,b;
+
+GLfloat a=10.0,d=0,m=10;
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
+
+AUX_RGBImageRec *LoadBMP(char *Filename)                // Loads A Bitmap Image
+{
+        FILE *File=NULL;                                // File Handle
+
+        if (!Filename)                                  // Make Sure A Filename Was Given
+        {
+                return NULL;                            // If Not Return NULL
+        }
+
+        File=fopen(Filename,"r");                       // Check To See If The File Exists
+
+        if (File)                                       // Does The File Exist?
+        {
+                fclose(File);                           // Close The Handle
+                return auxDIBImageLoad(Filename);       // Load The Bitmap And Return A Pointer
+        }
+        return NULL;                                    // If Load Failed Return NULL
+}
 
 GLuint CreateTexture(CString filename )					//创建纹理
 {
@@ -68,10 +91,15 @@ GLuint CreateTexture(CString filename )					//创建纹理
 
 void LoadGLTextures()
 {
-		texture[0] = CreateTexture("Texture\\wall.bmp");
+		texture[0] = CreateTexture("Texture\\Court.bmp");
+		texture[1] = CreateTexture("Texture\\attack.bmp");
+		texture[2] = CreateTexture("Texture\\still.bmp");
+		texture[3] = CreateTexture("Texture\\walkl.bmp");
+		texture[4] = CreateTexture("Texture\\walkr.bmp");
+		texture[5] = CreateTexture("Texture\\walku.bmp");
+		texture[6] = CreateTexture("Texture\\walkd.bmp");
+
 	
-
-
 }
 
 GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize The GL Window
@@ -96,20 +124,45 @@ GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize Th
 int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 {
 	LoadGLTextures();								// Jump To Texture Loading Routine
-	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
-	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);				// Black Background
-	glClearDepth(1.0f);									// Depth Buffer Setup
+	glEnable(GL_TEXTURE_2D);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE);					// Set The Blending Function For Translucency
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// This Will Clear The Background Color To Black
+	glClearDepth(1.0);									// Enables Clearing Of The Depth Buffer
+	glDepthFunc(GL_LESS);								// The Type Of Depth Test To Do
 	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
-	glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
+	glShadeModel(GL_SMOOTH);							// Enables Smooth Color Shading
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
+	
 	return TRUE;										// Initialization Went OK
 }
-
+Player p1(-1,0,-3);
 int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 	glLoadIdentity();	// Reset The Current Modelview Matrix
-	BackGround();
+
+	gluLookAt(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -2.0f, 0, 1, 0);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glBegin(GL_QUADS);									// Draw A Quad
+		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 4.0f, -5.0f);					// Top Left
+		glTexCoord2f(1.0,1.0);glVertex3f( 3.0f, 4.0f, -5.0f);					// Top Right
+		glTexCoord2f(1.0,0.0);glVertex3f( 3.0f,0.0f, -5.0f);					// Bottom Right
+		glTexCoord2f(0.0,0.0);glVertex3f(-3.0f,0.0f, -5.0f);					// Bottom Left
+	glEnd();
+	glBegin(GL_QUADS);									// Draw A Quad
+		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 0.0f, -5.0f);					// Top Left
+		glTexCoord2f(1.0,1.0);glVertex3f( 3.0f, 0.0f, -5.0f);					// Top Right
+		glTexCoord2f(1.0,0.0);glVertex3f( 3.0f,0.0f, 0.0f);					// Bottom Right
+		glTexCoord2f(0.0,0.0);glVertex3f(-3.0f,0.0f, 0.0f);					// Bottom Left
+	glEnd();	// Done Drawing The Quad
+
+	p1.attack(a,texture[1]);
+	p1.walk(m,texture[move],b);
+
+	p1.draw(texture[2]);
+
+	
+
 	return TRUE;										// Keep Going
 
 }
@@ -431,7 +484,37 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			}
 			else									// Not Time To Quit, Update Screen
 			{
-				SwapBuffers(hDC);					// Swap Buffers (Double Buffering)
+				SwapBuffers(hDC);
+				// Swap Buffers (Double Buffering)
+				if(keys['J'])
+				{
+					a=0;
+				}
+				if(keys['W'])
+				{
+					move=5;
+					m=0;
+					b=5;
+				}
+				if(keys['S'])
+				{
+					move=6;
+					m=0;
+					b=6;
+					p1.setflag(0);
+				}
+				if(keys['D'])
+				{
+					move=4;
+					m=0;
+					b=4;
+				}
+				if(keys['A'])
+				{
+					move=3;
+					m=0;
+					b=3;
+				}
 			}
 
 			if (keys[VK_F1])						// Is F1 Being Pressed?
