@@ -73,7 +73,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib  OpenGL32.lib GLu32.lib GLaux.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib OpenGL32.lib GLu32.lib GLaux.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -82,9 +82,73 @@ LINK32=link.exe
 
 # Name "Game - Win32 Release"
 # Name "Game - Win32 Debug"
+# Begin Group "Source FIles"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\Attack.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\background.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\dead.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Enemies.cpp
+# End Source File
 # Begin Source File
 
 SOURCE=.\Game.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\Hero.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Human.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Main.cpp
+# End Source File
+# End Group
+# Begin Group "Header Files"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\Attack.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\dead.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Enemies.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Hero.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Human.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\StdAfx.h
+# End Source File
+# End Group
+# Begin Group "Resource Files"
+
+# PROP Default_Filter ""
+# End Group
 # End Target
 # End Project
