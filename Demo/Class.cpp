@@ -1,8 +1,6 @@
+//#include <windows.h>
 #include <math.h>
-#include "Class.h"
-#include <cstdlib>
-#include <ctime>
-#define random(a,b) (rand()%(b-a)+a)
+#include "Hero.h"
 
 
 float distance(float x1,float y1,float x2,float y2)
@@ -45,18 +43,13 @@ void Player::walk(GLfloat& roll,GLuint a,int b)
 			glTexCoord2f(roll,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
 			glTexCoord2f(roll+0.25f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
 			glTexCoord2f(roll+0.25f,0.0f);glVertex3f( X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);
-		GLfloat ac=0.1f;					// Bottom Left
+			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
 		glEnd();
-	/*	if(b==3) X -= ac;
+		GLfloat ac=0.1f;
+		if(b==3) X -= ac;
 		if(b==4) X += ac;
 		if(b==5) Z -= ac;
-		if(b==6) {Z += ac;}*/
-		srand((int)time(0)); 
-		int num = random(0,2) -1 ;
-		if(num){
-			X += ac;
-		}else X -= ac;
+		if(b==6) {Z += ac;}
 		roll += 0.25f;
 		Sleep(50);
 	}
@@ -97,4 +90,6 @@ void Player::draw(GLuint a)
 		glEnd();
 	}
 }
+
+
 

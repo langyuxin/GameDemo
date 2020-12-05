@@ -87,7 +87,7 @@ public:
 	void	setDetectRange(float a){DetectRange=a;}
 	void	setRewardScore(int b){RewardScore=b;}
 	void	setTime(float c){Time=c;}
-
+	void	Patrol();		//Ñ²Âß
 	void	walk();
 	void	attack();
 	void	die();

@@ -92,7 +92,31 @@ SOURCE=.\Class.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Enemies.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Game.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\GameManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\GameManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\StdAfx.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\StdAfx.h
 # End Source File
 # End Target
 # End Project
