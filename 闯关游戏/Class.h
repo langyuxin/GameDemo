@@ -72,8 +72,8 @@ public:
 	void	draw(GLuint a);				//参数d判断玩家是否按下了其他键来决定这一帧是否绘制人物静止图，a为人物静止时的纹理
 protected:
 	int Score;					//获得的分数
-	int RunSpeed;
-	int flag;
+	int RunSpeed;				//人物奔跑的速度
+	int flag;					//判断人物是否为静止状态。
 };
 
 class Enemy:public BaseObject

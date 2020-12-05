@@ -36,7 +36,7 @@ Player::~Player()
 void Player::run()
 {
 }
-void Player::walk(GLfloat& roll,GLuint a,int b)			
+void Player::walk(GLfloat& roll,GLuint a,int b)			//每个动作分为4帧，roll用来表示此事绘制到哪一帧，a为该动作的纹理，b为移动动作的方向
 {
 	if(roll<=1)
 	{
@@ -62,7 +62,7 @@ void Player::walk(GLfloat& roll,GLuint a,int b)
 	}
 	else flag = 1;
 }
-void Player::attack(GLfloat& roll,GLuint a)
+void Player::attack(GLfloat& roll,GLuint a)		//每个动作分为4帧，roll用来表示此事绘制到哪一帧，a为该动作的纹理
 {
 	if(roll<=1)
 	{
@@ -84,7 +84,7 @@ void Player::die()
 void Player::jump()
 {
 }
-void Player::draw(GLuint a)
+void Player::draw(GLuint a)					//绘制静止时的图像，只需传入纹理
 {
 	if(flag==1)
 	{

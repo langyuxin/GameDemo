@@ -23,10 +23,9 @@ bool	keys[256];			// Array Used For The Keyboard Routine
 bool	active=TRUE;		// Window Active Flag Set To TRUE By Default
 bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
 
-GLuint	texture[12];			// Storage For 7 Textures
-int	move,b;
-
-GLfloat a=10.0,d=0,m=10;
+GLuint	texture[12];			// 保存纹理
+int	move,b;						//b指示人物移动方向，move用来选择对应图像的纹理
+GLfloat a=10.0,m=10;			//m判定人物是否移动以及此时绘制到了移动动作的第几帧，a判断人物是否攻击及绘制到攻击动作的第几帧
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 
@@ -89,7 +88,7 @@ GLuint CreateTexture(CString filename )					//创建纹理
 
 }
 
-void LoadGLTextures()
+void LoadGLTextures()					//加载纹理
 {
 		texture[0] = CreateTexture("Texture\\Court.bmp");
 		texture[1] = CreateTexture("Texture\\attack.bmp");
@@ -135,7 +134,7 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	
 	return TRUE;										// Initialization Went OK
 }
-Player p1(-1,0,-3);
+Player p1(-1,0,-3);			//生成人物对象
 int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
@@ -143,6 +142,9 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 
 	gluLookAt(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -2.0f, 0, 1, 0);
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	/*
+			简单场景的绘制;
+	*/
 	glBegin(GL_QUADS);									// Draw A Quad
 		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 4.0f, -5.0f);					// Top Left
 		glTexCoord2f(1.0,1.0);glVertex3f( 3.0f, 4.0f, -5.0f);					// Top Right
@@ -156,10 +158,10 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 		glTexCoord2f(0.0,0.0);glVertex3f(-3.0f,0.0f, 0.0f);					// Bottom Left
 	glEnd();	// Done Drawing The Quad
 
-	p1.attack(a,texture[1]);
-	p1.walk(m,texture[move],b);
+	p1.attack(a,texture[1]);					//人物攻击动作的判定和绘制，a的值为0：玩家按下了攻击键，并开始绘制；
+	p1.walk(m,texture[move],b);					//人物移动动作的判定和绘制，m的值分别为3,4，5,6代表向左右上下四个方向移动；
 
-	p1.draw(texture[2]);
+	p1.draw(texture[2]);						//人物静止时图像的绘制，人物属性中的多个flag标志，用来判定这一帧人物是否静止；
 
 	
 
@@ -486,7 +488,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			{
 				SwapBuffers(hDC);
 				// Swap Buffers (Double Buffering)
-				if(keys['J'])
+				if(keys['J'])					//以下一系列是常用游戏键位的设置和对应人物属性参数的改变
 				{
 					a=0;
 				}
