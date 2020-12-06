@@ -1,0 +1,38 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Game - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E8.tmp" with contents
+[
+/nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Fp"Debug/Game.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\git\githubfile\GameDemo\GameDemo\闯关游戏\GameManager.cpp"
+]
+Creating command line "cl.exe @C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E8.tmp" 
+Creating temporary file "C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E9.tmp" with contents
+[
+OpenGL32.lib GLu32.lib GLaux.lib /nologo /subsystem:windows /incremental:yes /pdb:"Debug/Game.pdb" /debug /machine:I386 /nodefaultlib:"LIBCD.lib LIBCMTD.lib" /out:"Debug/Game.exe" /pdbtype:sept 
+".\Debug\Class.obj"
+".\Debug\Enemies.obj"
+".\Debug\Game.obj"
+".\Debug\GameManager.obj"
+".\Debug\StdAfx.obj"
+]
+Creating command line "link.exe @C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E9.tmp"
+<h3>Output Window</h3>
+Compiling...
+GameManager.cpp
+Linking...
+Build : warning : failed to (or don't know how to) build 'E:\git\githubfile\GameDemo\GameDemo\闯关游戏\Enemies.cpp'
+
+
+
+
+<h3>Results</h3>
+Game.exe - 0 error(s), 1 warning(s)
+</pre>
+</body>
+</html>

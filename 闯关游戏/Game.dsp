@@ -84,10 +84,6 @@ LINK32=link.exe
 # Name "Game - Win32 Debug"
 # Begin Source File
 
-SOURCE=.\Class.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\Class.h
 # End Source File
 # Begin Source File
@@ -108,15 +104,7 @@ SOURCE=.\GameManager.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\resource.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\StdAfx.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\StdAfx.h
+SOURCE=.\Players.cpp
 # End Source File
 # End Target
 # End Project

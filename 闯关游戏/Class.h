@@ -58,42 +58,63 @@ public:
 	virtual ~Player();
 	int		getScore(){return Score;}
 	int		getRunSpeed(){return RunSpeed;}
-	int		getflag(){return flag;}
+	int		getflagm(){return flagm;}
+	int		getflagj(){return flagj;}
+	int		getflaga(){return flaga;}
+	int		getFace(){return Face;}
+	int     getflagd(){return flagd;}
 
+
+	void	setFace(int a){Face=a;}
 	void	setScore(int a){Score=a;}
 	void	setRunSpeed(int b){RunSpeed=b;}
-	void	setflag(int a){flag = a;}
+	void	setflagm(int a){flagm = a;}
+	void	setflaga(int a){flaga = a;}
+	void	setflagj(int a){flagj = a;}
+	void	setflagd(int a){flagd = a;}
 
 	void	run();
 	void	walk(GLfloat& roll,GLuint a,int b);			//传入参数roll判断玩家是否按下了移动建,b来确定按下的是哪个移动方向的键，a为传入的纹理
 	void	attack(GLfloat& roll,GLuint a);			//参数roll判断玩家是否按下了攻击键，a为攻击的纹理
-	void	die();
+	void	die(GLfloat& roll,GLuint a);
 	void	jump();
-	void	draw(GLuint a);				//参数d判断玩家是否按下了其他键来决定这一帧是否绘制人物静止图，a为人物静止时的纹理
+	void	draw(GLuint a);				//a为人物静止时的纹理
 protected:
 	int Score;					//获得的分数
-	int RunSpeed;				//人物奔跑的速度
-	int flag;					//判断人物是否为静止状态。
+	int RunSpeed;
+	int flagm,flaga,flagj,flagd;		//判断人物此时的状态
+	int		Face;				//朝向的方向1:脸朝右，-1：脸朝左；
 };
 
 class Enemy:public BaseObject
 {
 public:
-	Enemy();
+	Enemy(float x,float y,float z);
+	virtual ~Enemy();
 	float	getDetectRange(){return DetectRange;}
 	float	getTime(){return Time;}
 	int		getRewardScore(){return RewardScore;}
+	int		getflagm(){return flagm;}
+	int		getflagd(){return flagd;}
+	int		getflaga(){return flaga;}
+
 
 	void	setDetectRange(float a){DetectRange=a;}
 	void	setRewardScore(int b){RewardScore=b;}
 	void	setTime(float c){Time=c;}
-	void	Patrol();		//巡逻
-	void	walk();
-	void	attack();
-	void	die();
+	void	setflagm(int a){flagm=a;}
+	void	setflagd(int a){flagd=a;}
+	void	setflaga(int a){flaga=a;}
+
+	void	walk(GLfloat& roll,GLuint a,int b);			//传入参数roll判断玩家是否按下了移动建,b来确定按下的是哪个移动方向的键，a为传入的纹理
+	void	attack(GLfloat& roll,GLuint a);			//参数roll判断玩家是否按下了攻击键，a为攻击的纹理
+	void	die(GLfloat& roll,GLuint a);
 	void	jump();
+	void	draw(GLuint a);
 protected:
 	float	DetectRange;		//探测玩家范围
 	int		RewardScore;		//被击败奖励玩家的分数
 	float	Time;				//用于判定仇恨丢失的时间
+	int flagm,flaga,flagd;		//判断人物此时的状态
+
 };

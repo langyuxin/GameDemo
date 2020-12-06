@@ -12,7 +12,11 @@
 #include <gl\glu.h>			// Header File For The GLu32 Library
 #include <gl\glaux.h>		// Header File For The Glaux Library
 #include "stdafx.h"
-#include "Class.h"
+#include <FreeImage.h> 
+#include "GameManager.h"
+#include <time.h>
+
+#pragma comment(lib,"FreeImaged.lib")
 
 HDC			hDC=NULL;		// Private GDI Device Context
 HGLRC		hRC=NULL;		// Permanent Rendering Context
@@ -23,80 +27,75 @@ bool	keys[256];			// Array Used For The Keyboard Routine
 bool	active=TRUE;		// Window Active Flag Set To TRUE By Default
 bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
 
-GLuint	texture[12];			// 保存纹理
-int	move,b;						//b指示人物移动方向，move用来选择对应图像的纹理
-GLfloat a=10.0,m=10;			//m判定人物是否移动以及此时绘制到了移动动作的第几帧，a判断人物是否攻击及绘制到攻击动作的第几帧
+GLuint	texture[12];			// 保存我方角色纹理
+GLuint	texturee[12];			//保存敌方角色纹理
+int	move,b,end=0;			//end来判断游戏结束与否；
+
+int emove,eb;				//地方角色行动判定参数
+GLfloat ea=10.0,ed=0,em=10;	//地方角色行动判定参数
+
+GLfloat a=10.0,d=0,m=10;
+
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
-
-AUX_RGBImageRec *LoadBMP(char *Filename)                // Loads A Bitmap Image
-{
-        FILE *File=NULL;                                // File Handle
-
-        if (!Filename)                                  // Make Sure A Filename Was Given
-        {
-                return NULL;                            // If Not Return NULL
-        }
-
-        File=fopen(Filename,"r");                       // Check To See If The File Exists
-
-        if (File)                                       // Does The File Exist?
-        {
-                fclose(File);                           // Close The Handle
-                return auxDIBImageLoad(Filename);       // Load The Bitmap And Return A Pointer
-        }
-        return NULL;                                    // If Load Failed Return NULL
-}
 
 GLuint CreateTexture(CString filename )					//创建纹理
 {
 
      GLuint      texture;     
 	
-	_AUX_RGBImageRec *Image;				
+	FREE_IMAGE_FORMAT fifmt = FreeImage_GetFileType(filename,0);
+    FIBITMAP*dib = FreeImage_Load(fifmt,filename, 0);
+	BYTE *bits = new BYTE[FreeImage_GetWidth(dib)*FreeImage_GetHeight(dib)*4];
+    BYTE *pixels = (BYTE*)FreeImage_GetBits(dib);
 
-    if(Image = auxDIBImageLoadA( (const char*) filename ))
-	{
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-   
-  		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-		gluBuild2DMipmaps(GL_TEXTURE_2D, 3, Image->sizeX,
-                              Image->sizeY, GL_RGB,
-                              GL_UNSIGNED_BYTE, Image->data);
+	int count=0;
+    for(int pix=0; pix<(FreeImage_GetWidth(dib)*FreeImage_GetHeight(dib))*3; pix+=3)
+     {
+		bits[count] = pixels[pix+2];
+        bits[count + 1] = pixels[pix+1];
+        bits[count + 2] = pixels[pix];
+		if(pixels[pix]==255 &&	pixels[pix+1]==255 && pixels[pix+2]==255)
+			bits[count + 3] = 0;
+		else bits[count + 3] = 255;
+		count +=4;
 	}
+	glGenTextures(1,&texture);                  //generate texture object
+    glBindTexture(GL_TEXTURE_2D, texture);       // enable ourtexture object
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    //generate the texture image
+  // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,FreeImage_GetWidth(dib),FreeImage_GetHeight(dib), 0, GL_RGBA,GL_UNSIGNED_BYTE, bits);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 4, FreeImage_GetWidth(dib),FreeImage_GetHeight(dib), GL_RGBA, GL_UNSIGNED_BYTE, bits);
+	FreeImage_Unload(dib);
+	delete bits;
 
-
-  
-   
-  	if(Image)
-	{										
-		if (Image->data)
-			delete Image->data;			
-		delete Image;
-	}
 	return texture;
 
 
 }
 
-void LoadGLTextures()					//加载纹理
+void LoadGLTextures()
 {
+
 		texture[0] = CreateTexture("Texture\\Court.bmp");
-		texture[1] = CreateTexture("Texture\\attack.bmp");
-		texture[2] = CreateTexture("Texture\\still.bmp");
+		texture[1] = CreateTexture("Texture\\attackr.bmp");
+		texture[2] = CreateTexture("Texture\\attackl.bmp");
 		texture[3] = CreateTexture("Texture\\walkl.bmp");
 		texture[4] = CreateTexture("Texture\\walkr.bmp");
 		texture[5] = CreateTexture("Texture\\walku.bmp");
 		texture[6] = CreateTexture("Texture\\walkd.bmp");
+		texture[7] = CreateTexture("Texture\\stillr.bmp");
+		texture[8] = CreateTexture("Texture\\stilll.bmp");
+		texture[9] = CreateTexture("Texture\\fail.bmp");
+		texture[10] = CreateTexture("Texture\\die.bmp");
+
+		texturee[0] = CreateTexture("Texture\\enemy_sl.bmp");
+		texturee[1] = CreateTexture("Texture\\enemy_wl.bmp");
+		texturee[2] = CreateTexture("Texture\\enemy_al.bmp");
+		texturee[3] = CreateTexture("Texture\\enemy_die.bmp");
 
 	
 }
@@ -122,8 +121,11 @@ GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize Th
 
 int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 {
+
 	LoadGLTextures();								// Jump To Texture Loading Routine
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.5f);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE);					// Set The Blending Function For Translucency
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// This Will Clear The Background Color To Black
 	glClearDepth(1.0);									// Enables Clearing Of The Depth Buffer
@@ -131,10 +133,104 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
 	glShadeModel(GL_SMOOTH);							// Enables Smooth Color Shading
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
-	
+//	glEnable(GL_BLEND);
+		
+	end=1;
 	return TRUE;										// Initialization Went OK
 }
-Player p1(-1,0,-3);			//生成人物对象
+Player p1=Player(-2.5,0,-3);
+Enemy e1=Enemy(0,0,-3);
+void Running()
+{
+		if(keys['J'])					//攻击
+		{
+			if(a>1) a=0;
+			p1.setflaga(1);
+		}
+		if(keys['W'] &&p1.getflaga()==0)	//向上走
+		{
+			move=5;
+			if(m >=1) {m=0;p1.setflagm(1);}
+			b=5;
+		}
+		if(keys['S'] &&p1.getflaga()==0)	//向下走
+		{
+			move=6;
+			if(m >=1) {m=0;p1.setflagm(1);}
+			b=6;
+		}
+		if(keys['D'] &&p1.getflaga()==0)	//向右走
+		{
+			move=4;
+			if(m >=1) {m=0;p1.setflagm(1);p1.setFace(1);}
+			b=4;
+		}
+		if(keys['A'] &&p1.getflaga()==0)	//向左走
+		{
+			move=3;
+			if(m >=1) {m=0;p1.setflagm(1);p1.setFace(-1);}
+			b=3;
+		}
+		
+}
+
+void Ending()
+{
+		
+		if(p1.getflagd()==0)
+		{
+			glBindTexture(GL_TEXTURE_2D, texture[9]);
+			glBegin(GL_QUADS);									// Draw A Quad
+				glTexCoord2f(0.0f,1.0f);glVertex3f(p1.getX(), p1.getY()+2, p1.getZ());					// Top Left
+				glTexCoord2f(1.0f,1.0f);glVertex3f(p1.getX()+2, p1.getY()+2, p1.getZ());					// Top Right
+				glTexCoord2f(1.0f,0.0f);glVertex3f(p1.getX()+2, p1.getY(), p1.getZ());					// Bottom Right
+				glTexCoord2f(0.0f,0.0f);glVertex3f(p1.getX(), p1.getY(), p1.getZ());					// Bottom Left
+			glEnd();
+		}
+		else if(p1.getflagd()==1)  p1.die(d,texture[10]);
+
+}
+GameManager g1;
+void Update()					//敌我双方角色的动作更新
+{
+	if(p1.getFace() == -1)
+		{
+			p1.attack(a,texture[2]);
+			p1.walk(m,texture[move],b);
+			p1.draw(texture[8]);
+		}
+	else if(p1.getFace() == 1)
+		{
+			p1.attack(a,texture[1]);
+			p1.walk(m,texture[move],b);
+			p1.draw(texture[7]);
+
+		}
+	if(e1.getflagd() == 0)
+		{	
+			int num = rand()%3-1 ;//随机生成正负数来判断是向左走还是向右走
+			int flag =rand()%2001;	
+			if(flag == 100) {ea=0;e1.setflaga(1);}
+			e1.attack(ea,texturee[2]);
+
+			if(em>1 && flag==1000) {em=0;e1.setflagm(1);}
+			e1.walk(em,texturee[1],num);
+			e1.draw(texturee[0]);
+		}
+	if( g1.HumanCollision(p1,e1) && p1.getflaga()==1)
+		{
+			e1.setflagd(1);
+			e1.die(ed,texturee[3]);
+		}
+	if(g1.HumanCollision(p1,e1) && e1.getflaga()==1) 
+	{
+		end=0;
+		d=0.0f;
+		p1.setflagd(1);
+	}
+
+	
+}
 int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
@@ -142,9 +238,6 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 
 	gluLookAt(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -2.0f, 0, 1, 0);
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	/*
-			简单场景的绘制;
-	*/
 	glBegin(GL_QUADS);									// Draw A Quad
 		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 4.0f, -5.0f);					// Top Left
 		glTexCoord2f(1.0,1.0);glVertex3f( 3.0f, 4.0f, -5.0f);					// Top Right
@@ -157,11 +250,15 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 		glTexCoord2f(1.0,0.0);glVertex3f( 3.0f,0.0f, 0.0f);					// Bottom Right
 		glTexCoord2f(0.0,0.0);glVertex3f(-3.0f,0.0f, 0.0f);					// Bottom Left
 	glEnd();	// Done Drawing The Quad
-
-	p1.attack(a,texture[1]);					//人物攻击动作的判定和绘制，a的值为0：玩家按下了攻击键，并开始绘制；
-	p1.walk(m,texture[move],b);					//人物移动动作的判定和绘制，m的值分别为3,4，5,6代表向左右上下四个方向移动；
-
-	p1.draw(texture[2]);						//人物静止时图像的绘制，人物属性中的多个flag标志，用来判定这一帧人物是否静止；
+	//
+	if(end==1)
+	{
+		Update();
+	}
+	else
+	{
+		Ending();
+	}
 
 	
 
@@ -450,6 +547,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 {
 	MSG		msg;									// Windows Message Structure
 	BOOL	done=FALSE;								// Bool Variable To Exit Loop
+	srand((int)time(NULL));
 
 	// Ask The User Which Screen Mode They Prefer
 	if (MessageBox(NULL,"Would You Like To Run In Fullscreen Mode?", "Start FullScreen?",MB_YESNO|MB_ICONQUESTION)==IDNO)
@@ -486,37 +584,10 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			}
 			else									// Not Time To Quit, Update Screen
 			{
+				Running();
 				SwapBuffers(hDC);
 				// Swap Buffers (Double Buffering)
-				if(keys['J'])					//以下一系列是常用游戏键位的设置和对应人物属性参数的改变
-				{
-					a=0;
-				}
-				if(keys['W'])
-				{
-					move=5;
-					m=0;
-					b=5;
-				}
-				if(keys['S'])
-				{
-					move=6;
-					m=0;
-					b=6;
-					p1.setflag(0);
-				}
-				if(keys['D'])
-				{
-					move=4;
-					m=0;
-					b=4;
-				}
-				if(keys['A'])
-				{
-					move=3;
-					m=0;
-					b=3;
-				}
+				
 			}
 
 			if (keys[VK_F1])						// Is F1 Being Pressed?
