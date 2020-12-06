@@ -1,0 +1,57 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Class - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\ADMINI~1\AppData\Local\Temp\RSP6824.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/Class.pdb" /debug /machine:I386 /out:"Debug/Class.exe" /pdbtype:sept 
+".\Debug\Class.obj"
+]
+Creating command line "link.exe @C:\Users\ADMINI~1\AppData\Local\Temp\RSP6824.tmp"
+<h3>Output Window</h3>
+Linking...
+Class.obj : error LNK2001: unresolved external symbol "bool end" (?end@@3_NA)
+Class.obj : error LNK2001: unresolved external symbol "unsigned long endtime" (?endtime@@3KA)
+Class.obj : error LNK2001: unresolved external symbol "int myPlaneNum" (?myPlaneNum@@3HA)
+Class.obj : error LNK2001: unresolved external symbol "class Ammunition * ammunitions" (?ammunitions@@3PAVAmmunition@@A)
+Class.obj : error LNK2001: unresolved external symbol "int timer" (?timer@@3HA)
+Class.obj : error LNK2001: unresolved external symbol _FSOUND_PlaySound@8
+Class.obj : error LNK2001: unresolved external symbol "struct FSOUND_SAMPLE * sound_2" (?sound_2@@3PAUFSOUND_SAMPLE@@A)
+Class.obj : error LNK2001: unresolved external symbol __imp__glPopMatrix@0
+Class.obj : error LNK2001: unresolved external symbol __imp__glDisable@4
+Class.obj : error LNK2001: unresolved external symbol __imp__glEnd@0
+Class.obj : error LNK2001: unresolved external symbol __imp__glVertex2f@8
+Class.obj : error LNK2001: unresolved external symbol __imp__glTexCoord2d@16
+Class.obj : error LNK2001: unresolved external symbol __imp__glBegin@4
+Class.obj : error LNK2001: unresolved external symbol __imp__glBindTexture@8
+Class.obj : error LNK2001: unresolved external symbol "struct TextureTga * othertex" (?othertex@@3PAUTextureTga@@A)
+Class.obj : error LNK2001: unresolved external symbol __imp__glEnable@4
+Class.obj : error LNK2001: unresolved external symbol __imp__glTranslatef@12
+Class.obj : error LNK2001: unresolved external symbol __imp__glPushMatrix@0
+Class.obj : error LNK2001: unresolved external symbol "class ComputerPlane * computers" (?computers@@3PAVComputerPlane@@A)
+Class.obj : error LNK2001: unresolved external symbol __imp__glVertex2i@8
+Class.obj : error LNK2001: unresolved external symbol __imp__glTexCoord2i@8
+Class.obj : error LNK2001: unresolved external symbol __imp__glColor3f@12
+Class.obj : error LNK2001: unresolved external symbol "struct TextureTga * playertex" (?playertex@@3PAUTextureTga@@A)
+Class.obj : error LNK2001: unresolved external symbol "struct TextureTga * computertex" (?computertex@@3PAUTextureTga@@A)
+Class.obj : error LNK2001: unresolved external symbol "class PlayerPlane myPlane" (?myPlane@@3VPlayerPlane@@A)
+Class.obj : error LNK2001: unresolved external symbol __imp__glTexCoord2f@8
+Class.obj : error LNK2001: unresolved external symbol "class Award * awards" (?awards@@3PAVAward@@A)
+Class.obj : error LNK2001: unresolved external symbol "struct TextureTga * ammunitiontex" (?ammunitiontex@@3PAUTextureTga@@A)
+Class.obj : error LNK2001: unresolved external symbol "struct TextureTga * awardtex" (?awardtex@@3PAUTextureTga@@A)
+Class.obj : error LNK2001: unresolved external symbol "struct FSOUND_SAMPLE * sound_3" (?sound_3@@3PAUFSOUND_SAMPLE@@A)
+LIBCD.lib(crt0.obj) : error LNK2001: unresolved external symbol _main
+Debug/Class.exe : fatal error LNK1120: 31 unresolved externals
+Ö´ÐÐ link.exe Ê±³ö´í.
+
+
+
+<h3>Results</h3>
+Class.exe - 1 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
