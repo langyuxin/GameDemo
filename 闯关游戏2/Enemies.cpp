@@ -1,4 +1,4 @@
-#include <windows.h>
+//#include <windows.h>
 #include <math.h>
 #include "Class.h"
 Enemy::Enemy(float x,float y,float z)

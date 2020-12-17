@@ -48,15 +48,11 @@ void Player::walk(GLfloat& roll,GLuint a,int b)			//Ã¿¸ö¶¯×÷·ÖÎª4Ö¡£¬rollÓÃÀ´±íÊ
 			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);
 		GLfloat ac=0.1f;					// Bottom Left
 		glEnd();
-	/*	if(b==3) X -= ac;
+		if(b==3) X -= ac;
 		if(b==4) X += ac;
 		if(b==5) Z -= ac;
-		if(b==6) {Z += ac;}*/
-		srand((int)time(0)); 
-		int num = random(0,2) -1 ;
-		if(num){
-			X += ac;
-		}else X -= ac;
+		if(b==6) {Z += ac;}
+		
 		roll += 0.25f;
 		Sleep(50);
 	}

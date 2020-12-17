@@ -1,4 +1,4 @@
-//在此处定义WINDOW头文件
+////在此处定义WINDOW头文件
 #include <windows.h>		// Windows 头文件
 #include <stdio.h>
 

@@ -92,6 +92,10 @@ SOURCE=.\Enemies.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\FreeImage.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Game.cpp
 # End Source File
 # Begin Source File

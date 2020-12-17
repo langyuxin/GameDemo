@@ -6,13 +6,13 @@
 --------------------Configuration: Game - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E8.tmp" with contents
+Creating temporary file "C:\Users\lang\AppData\Local\Temp\RSP3181.tmp" with contents
 [
 /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Fp"Debug/Game.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
-"E:\git\githubfile\GameDemo\GameDemo\闯关游戏\GameManager.cpp"
+"F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp"
 ]
-Creating command line "cl.exe @C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E8.tmp" 
-Creating temporary file "C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E9.tmp" with contents
+Creating command line "cl.exe @C:\Users\lang\AppData\Local\Temp\RSP3181.tmp" 
+Creating temporary file "C:\Users\lang\AppData\Local\Temp\RSP3182.tmp" with contents
 [
 OpenGL32.lib GLu32.lib GLaux.lib /nologo /subsystem:windows /incremental:yes /pdb:"Debug/Game.pdb" /debug /machine:I386 /nodefaultlib:"LIBCD.lib LIBCMTD.lib" /out:"Debug/Game.exe" /pdbtype:sept 
 ".\Debug\Class.obj"
@@ -21,18 +21,33 @@ OpenGL32.lib GLu32.lib GLaux.lib /nologo /subsystem:windows /incremental:yes /pd
 ".\Debug\GameManager.obj"
 ".\Debug\StdAfx.obj"
 ]
-Creating command line "link.exe @C:\Users\ADMINI~1\AppData\Local\Temp\RSP93E9.tmp"
+Creating command line "link.exe @C:\Users\lang\AppData\Local\Temp\RSP3182.tmp"
 <h3>Output Window</h3>
 Compiling...
-GameManager.cpp
-Linking...
-Build : warning : failed to (or don't know how to) build 'E:\git\githubfile\GameDemo\GameDemo\闯关游戏\Enemies.cpp'
-
+Enemies.cpp
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(5) : error C2511: 'Enemy::Enemy' : overloaded member function 'void (float,float,float)' not found in 'Enemy'
+        f:\大四上\游戏开发\final\gamedemo\闯关游戏2\class.h(79) : see declaration of 'Enemy'
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(24) : error C2600: 'Enemy::~Enemy' : cannot define a compiler-generated special member function (must be declared in the class first)
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(29) : error C2511: 'walk' : overloaded member function 'void (float &,unsigned int,int)' not found in 'Enemy'
+        f:\大四上\游戏开发\final\gamedemo\闯关游戏2\class.h(79) : see declaration of 'Enemy'
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(50) : error C2511: 'attack' : overloaded member function 'void (float &,unsigned int)' not found in 'Enemy'
+        f:\大四上\游戏开发\final\gamedemo\闯关游戏2\class.h(79) : see declaration of 'Enemy'
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(72) : error C2511: 'die' : overloaded member function 'void (float &,unsigned int)' not found in 'Enemy'
+        f:\大四上\游戏开发\final\gamedemo\闯关游戏2\class.h(79) : see declaration of 'Enemy'
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(87) : error C2039: 'draw' : is not a member of 'Enemy'
+        f:\大四上\游戏开发\final\gamedemo\闯关游戏2\class.h(79) : see declaration of 'Enemy'
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(89) : error C2065: 'flaga' : undeclared identifier
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(89) : error C2065: 'flagm' : undeclared identifier
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(89) : error C2065: 'flagd' : undeclared identifier
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(93) : error C2065: 'X' : undeclared identifier
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(93) : error C2065: 'Y' : undeclared identifier
+F:\大四上\游戏开发\Final\GameDemo\闯关游戏2\Enemies.cpp(93) : error C2065: 'Z' : undeclared identifier
+Error executing cl.exe.
 
 
 
 <h3>Results</h3>
-Game.exe - 0 error(s), 1 warning(s)
+Game.exe - 12 error(s), 0 warning(s)
 </pre>
 </body>
 </html>

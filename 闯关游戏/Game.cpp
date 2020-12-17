@@ -12,7 +12,7 @@
 #include <gl\glu.h>			// Header File For The GLu32 Library
 #include <gl\glaux.h>		// Header File For The Glaux Library
 #include "stdafx.h"
-#include <FreeImage.h> 
+#include "FreeImage.h" 
 #include "GameManager.h"
 #include <time.h>
 
