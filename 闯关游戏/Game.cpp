@@ -12,11 +12,17 @@
 #include <gl\glu.h>			// Header File For The GLu32 Library
 #include <gl\glaux.h>		// Header File For The Glaux Library
 #include "stdafx.h"
-#include "FreeImage.h" 
+#include <FreeImage.h> 
 #include "GameManager.h"
 #include <time.h>
 
+#include "fmod.h"			// 音频库头文件
+
+#define WINDOW_WIDTH = 800
+#define WINDOW_HEIGHT = 600
+
 #pragma comment(lib,"FreeImaged.lib")
+#pragma comment(lib, "fmodvc.lib")
 
 HDC			hDC=NULL;		// Private GDI Device Context
 HGLRC		hRC=NULL;		// Permanent Rendering Context
@@ -26,18 +32,43 @@ HINSTANCE	hInstance;		// Holds The Instance Of The Application
 bool	keys[256];			// Array Used For The Keyboard Routine
 bool	active=TRUE;		// Window Active Flag Set To TRUE By Default
 bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
+//HBITMAP		g_hBitmap = NULL;
+bool	keyStart = false;	//游戏是否开始
+bool	end=false;		//end来判断游戏结束与否;
 
 GLuint	texture[12];			// 保存我方角色纹理
+GLuint	attack[2];
+GLuint	move[4];
+GLuint	die;
+GLuint	still[2];
+GLuint	jump[4];
 GLuint	texturee[12];			//保存敌方角色纹理
-int	move,b,end=0;			//end来判断游戏结束与否；
 
-int emove,eb;				//地方角色行动判定参数
-GLfloat ea=10.0,ed=0,em=10;	//地方角色行动判定参数
+GLuint	attacke[2];
+GLuint	movee[4];
+GLuint	diee;
+GLuint	stille[2];
 
-GLfloat a=10.0,d=0,m=10;
+GLuint	base;						// 输出字体的显示列表号
+GLuint	textureBg[5];			//背景加载
+
+FSOUND_SAMPLE *sound_2;
+FSOUND_STREAM *sound_1;
+
+int	enemynum=0;
+
+
+
+Player p1=Player(-2.5,0,-3);	//玩家角色
+Enemy e1=Enemy(0,0,-3);			//
+Enemy es[100];					//NPC角色数组
+GameManager g1;					//碰撞检测对象
 
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
+void InitGame();	//游戏初始化
+int DrawGLScene(GLvoid);//游戏主体函数
+void Ending();
 
 GLuint CreateTexture(CString filename )					//创建纹理
 {
@@ -81,25 +112,105 @@ void LoadGLTextures()
 {
 
 		texture[0] = CreateTexture("Texture\\Court.bmp");
-		texture[1] = CreateTexture("Texture\\attackr.bmp");
-		texture[2] = CreateTexture("Texture\\attackl.bmp");
-		texture[3] = CreateTexture("Texture\\walkl.bmp");
-		texture[4] = CreateTexture("Texture\\walkr.bmp");
-		texture[5] = CreateTexture("Texture\\walku.bmp");
-		texture[6] = CreateTexture("Texture\\walkd.bmp");
-		texture[7] = CreateTexture("Texture\\stillr.bmp");
-		texture[8] = CreateTexture("Texture\\stilll.bmp");
-		texture[9] = CreateTexture("Texture\\fail.bmp");
-		texture[10] = CreateTexture("Texture\\die.bmp");
+		attack[1]=texture[1] = CreateTexture("Texture1\\attackr.bmp");
+		attack[0]=texture[2] = CreateTexture("Texture1\\attackl.bmp");
+		move[2]=texture[3] = CreateTexture("Texture1\\walkl.bmp");
+		move[3]=texture[4] = CreateTexture("Texture1\\walkr.bmp");
+		move[0]=texture[5] = CreateTexture("Texture\\walku.bmp");
+		move[1]=texture[6] = CreateTexture("Texture\\walkd.bmp");
+		still[1]=texture[7] = CreateTexture("Texture1\\stillr.bmp");
+		still[0]=texture[8] = CreateTexture("Texture1\\stilll.bmp");
+		die=texture[10] = CreateTexture("Texture\\die.bmp");
+		jump[1] = CreateTexture("Texture1\\jumpr.bmp");
+		jump[0] = CreateTexture("Texture1\\jumpl.bmp");
+		jump[3] = CreateTexture("Texture1\\jumpattackr.bmp");
+		jump[2] = CreateTexture("Texture1\\jumpattackl.bmp");
+
 
 		texturee[0] = CreateTexture("Texture\\enemy_sl.bmp");
 		texturee[1] = CreateTexture("Texture\\enemy_wl.bmp");
 		texturee[2] = CreateTexture("Texture\\enemy_al.bmp");
 		texturee[3] = CreateTexture("Texture\\enemy_die.bmp");
 
-	
+		attacke[1]=texture[1] = CreateTexture("Texture1\\enemyattackr.bmp");
+		attacke[0]=texture[2] = CreateTexture("Texture1\\enemyattackl.bmp");
+		movee[2]=texture[3] = CreateTexture("Texture1\\enemywalkl.bmp");
+		movee[3]=texture[4] = CreateTexture("Texture1\\enemywalkr.bmp");
+		stille[1]=texture[7] = CreateTexture("Texture1\\enemystillr.bmp");
+		stille[0]=texture[8] = CreateTexture("Texture1\\enemystilll.bmp");
+
+		textureBg[0] = CreateTexture("Texture1\\1.bmp");
+		textureBg[1] = CreateTexture("Texture\\fail.bmp");
+		textureBg[2] = CreateTexture("Texture\\victory.bmp");
+}
+///音乐初始化
+GLvoid InitFMOD(GLvoid){
+	if (FSOUND_Init(44100, 32, 0))					// 把声音初始化为44khz
+		{
+			//sound_1=FMUSIC_LoadSong("Music/bg.mod");
+			sound_1=FSOUND_Stream_OpenFile("Music/bg.mp3",0,  0);
+			sound_2=FSOUND_Sample_Load(FSOUND_FREE, "Music/Se16.wav", FSOUND_2D, 0);
+		}
+}
+// 输出字体
+void BuildFontGL(GLvoid)												// 建立位图字体（Bitmap Fonts）
+{
+	HFONT	newFont;													// 用以保存新的字体对象
+	HFONT	oldFont;													// 用以保存原字体对象
+
+	base = glGenLists(256);												// 存储256个字符
+
+	newFont = CreateFont(	-45,										// 字体的高度
+							0,											// 字体的宽度
+							0,											// 旋转的角度
+							0,											// 定位角度
+							FW_THIN,									// 字体的粗细
+							FALSE,										// 斜体?
+							FALSE,										// 下划线?
+							FALSE,										// 删除线?
+							ANSI_CHARSET,								// 字符集
+							OUT_TT_PRECIS,								// 输出精度
+							CLIP_DEFAULT_PRECIS,						// 裁减精度
+							ANTIALIASED_QUALITY,						// 输出质量
+							FF_DONTCARE|DEFAULT_PITCH,					// 间距和字体族
+							"Georgia");									// 字体名称
+
+	oldFont = (HFONT)SelectObject(wglGetCurrentDC(), newFont); 			// 选进设备描述表 
+	wglUseFontBitmaps(wglGetCurrentDC(), 0, 256, base);					// 建立256个字符
+	SelectObject(wglGetCurrentDC(), oldFont);								// 恢复设备描述表
+	DeleteObject(newFont);												// 删除新字体
 }
 
+GLvoid KillFontGL(GLvoid)												// 删除保存字体的显示表
+{
+	glDeleteLists(base, 256);											// 删除256个字符
+}
+GLvoid glPrint(const char *pstr)									// 建立Print函数
+{
+/*	char		text[256];												// 用以保存格式化后的字符串
+	va_list		ap;														// 指向参数列表的指针
+
+	if (pstr == NULL)													// 没有可输出的字符？
+		return;															// 返回
+
+	va_start(ap, pstr);													// 遍历字符串，查找变量
+		vsprintf(text, pstr, ap);										// 将变量转换为显示的数字
+	va_end(ap);	*/														// 结果保存在text内
+
+	glPushAttrib(GL_LIST_BIT);											// 显示表状态入栈
+	glListBase(base -0);
+	glCallLists(strlen(pstr), GL_UNSIGNED_BYTE, pstr);	// 调用显示列表绘制字符串
+	glPopAttrib();				// 弹出属性堆栈
+									
+}
+
+// 声音释放
+GLvoid FreeFMOD(GLvoid)
+{
+	//if(sound_1) FMUSIC_FreeSong(sound_1);
+	if(sound_1) FSOUND_Stream_Close(sound_1);
+	if(sound_2) FSOUND_Sample_Free(sound_2);
+}
 GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize The GL Window
 {
 	if (height==0)										// Prevent A Divide By Zero By
@@ -135,100 +246,177 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
 //	glEnable(GL_BLEND);
 		
-	end=1;
+	InitGame();
 	return TRUE;										// Initialization Went OK
 }
-Player p1=Player(-2.5,0,-3);
-Enemy e1=Enemy(0,0,-3);
+void SetWorld()						//记载游戏地图
+{			
+	
+
+}
+void InitGame()							//游戏初始化
+{
+	p1.setattack(attack);
+	p1.setmove(move);
+	p1.setstill(still);
+	p1.setdie(die);	
+	p1.setjump(jump);
+
+	e1.setattack(attacke);
+	e1.setmove(movee);
+	e1.setstill(stille);
+	e1.setdie(diee);
+
+	InitFMOD();
+	BuildFontGL();
+
+	end=true;
+	enemynum=1;
+}
+void Start()							//判断是否开始游戏
+{
+	if(!keyStart)						//开始界面加载
+	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
+		glLoadIdentity();	// Reset The Current Modelview Matrixf
+		gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
+		//	glTranslatef(0.0f, 0.0f, -1.0f);
+		//	glColor3f(1.0f, 1.0f, 0.0f); // 颜色
+		//	glRasterPos2f(-0.4f, 0.30f); // 输出位置
+
+		//	glPrint("Active OpenGL Text With NeHe ");  // 输出文字到屏幕
+			
+		glBindTexture(GL_TEXTURE_2D, textureBg[0]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f(-4.0f, 2.2f, 0.0f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( 4.0f, 2.2f, 0.0f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( 4.0f,-2.2f, 0.0f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
+		glEnd();
+	}
+	else
+	{
+		if(end)
+		{
+			DrawGLScene();
+			FSOUND_Stream_Play (0,sound_1);			//游戏开始并播放背景音乐
+		}
+		else
+		{
+			Ending();								//游戏结束
+		//	FSOUND_Stream_Stop (0,sound_1);			//背景音乐停止
+		}
+	}
+
+}
 void Running()
 {
 		if(keys['J'])					//攻击
 		{
-			if(a>1) a=0;
-			p1.setflaga(1);
+			p1.setattackstate(1);
+			if(p1.getstate()!=4)
+			{	
+				p1.setstate(1);
+				if(p1.getfps()!=0 &&p1.getstate()!=1) p1.setfps(0);
+				FSOUND_PlaySound(5,sound_2);
+			}
 		}
-		if(keys['W'] &&p1.getflaga()==0)	//向上走
+		if(keys['W'] )	//向上走
 		{
-			move=5;
-			if(m >=1) {m=0;p1.setflagm(1);}
-			b=5;
+			p1.setmovedirect(0);
+			if(p1.getstate()==0)
+			{
+				p1.setstate(2);
+			}
 		}
-		if(keys['S'] &&p1.getflaga()==0)	//向下走
+		if(keys['S']  )	//向下走
 		{
-			move=6;
-			if(m >=1) {m=0;p1.setflagm(1);}
-			b=6;
+			p1.setmovedirect(1);	
+			if(p1.getstate()==0)
+			{
+				p1.setstate(2);
+			}
 		}
-		if(keys['D'] &&p1.getflaga()==0)	//向右走
+		if(keys['D'] )	//向右走
 		{
-			move=4;
-			if(m >=1) {m=0;p1.setflagm(1);p1.setFace(1);}
-			b=4;
+			p1.setmovedirect(3);
+			if(p1.getstate()==0)
+			{
+				p1.setstate(2);
+			}
+			if(p1.getstate()!=1&&p1.getstate()!=3)
+			{
+				p1.setFace(1);
+			}
 		}
-		if(keys['A'] &&p1.getflaga()==0)	//向左走
+		if(keys['A'] )	//向左走
 		{
-			move=3;
-			if(m >=1) {m=0;p1.setflagm(1);p1.setFace(-1);}
-			b=3;
+			p1.setmovedirect(2);
+			if(p1.getstate()==0)
+			{
+				p1.setstate(2);
+			}
+			if(p1.getstate()!=1&&p1.getstate()!=3)
+			{
+				p1.setFace(-1);
+			}
+		}
+		if(keys['K'])				//按“K”跳跃
+		{
+			if(p1.getfps()!=0 &&p1.getstate()!=4) p1.setfps(0);
+			p1.setstate(4);	
 		}
 		
+		if(keys[' '])				//按空格键开始游戏
+		{
+			keyStart = true;	
+		}
 }
 
-void Ending()
+void Ending()					//游戏结束
 {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
+	glLoadIdentity();	// Reset The Current Modelview Matrix
+	gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
+	if(p1.getChances()>0)
+	{
+		glBindTexture(GL_TEXTURE_2D, textureBg[2]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f(-4.0f, 2.2f, 0.0f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( 4.0f, 2.2f, 0.0f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( 4.0f,-2.2f, 0.0f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
+		glEnd();
+	}
+	if(p1.getChances()==0)
+	{
+		glBindTexture(GL_TEXTURE_2D, textureBg[1]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f(-4.0f, 2.2f, 0.0f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( 4.0f, 2.2f, 0.0f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( 4.0f,-2.2f, 0.0f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
+		glEnd();
+	}
 		
-		if(p1.getflagd()==0)
-		{
-			glBindTexture(GL_TEXTURE_2D, texture[9]);
-			glBegin(GL_QUADS);									// Draw A Quad
-				glTexCoord2f(0.0f,1.0f);glVertex3f(p1.getX(), p1.getY()+2, p1.getZ());					// Top Left
-				glTexCoord2f(1.0f,1.0f);glVertex3f(p1.getX()+2, p1.getY()+2, p1.getZ());					// Top Right
-				glTexCoord2f(1.0f,0.0f);glVertex3f(p1.getX()+2, p1.getY(), p1.getZ());					// Bottom Right
-				glTexCoord2f(0.0f,0.0f);glVertex3f(p1.getX(), p1.getY(), p1.getZ());					// Bottom Left
-			glEnd();
-		}
-		else if(p1.getflagd()==1)  p1.die(d,texture[10]);
-
 }
-GameManager g1;
+
 void Update()					//敌我双方角色的动作更新
 {
-	if(p1.getFace() == -1)
-		{
-			p1.attack(a,texture[2]);
-			p1.walk(m,texture[move],b);
-			p1.draw(texture[8]);
-		}
-	else if(p1.getFace() == 1)
-		{
-			p1.attack(a,texture[1]);
-			p1.walk(m,texture[move],b);
-			p1.draw(texture[7]);
 
-		}
-	if(e1.getflagd() == 0)
-		{	
-			int num = rand()%3-1 ;//随机生成正负数来判断是向左走还是向右走
-			int flag =rand()%2001;	
-			if(flag == 100) {ea=0;e1.setflaga(1);}
-			e1.attack(ea,texturee[2]);
-
-			if(em>1 && flag==1000) {em=0;e1.setflagm(1);}
-			e1.walk(em,texturee[1],num);
-			e1.draw(texturee[0]);
-		}
-	if( g1.HumanCollision(p1,e1) && p1.getflaga()==1)
+	p1.act();
+	e1.act();
+	
+	if( g1.HumanCollision(p1,e1) && p1.getattackstate()==1)
 		{
-			e1.setflagd(1);
-			e1.die(ed,texturee[3]);
+			enemynum--;
+			if(enemynum ==0)  end=0;		//敌人数为0，游戏结束
 		}
-	if(g1.HumanCollision(p1,e1) && e1.getflaga()==1) 
+	if(g1.HumanCollision(p1,e1) && e1.getattackstate()==1) 
 	{
-		end=0;
-		d=0.0f;
-		p1.setflagd(1);
+		p1.setChances(p1.getChances()-1);
+		if(p1.getChances()==0) end=0;     //玩家命数为0，游戏结束
 	}
-
 	
 }
 int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
@@ -236,7 +424,8 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 	glLoadIdentity();	// Reset The Current Modelview Matrix
 
-	gluLookAt(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -2.0f, 0, 1, 0);
+	SetWorld();			//加载游戏地图
+	gluLookAt(0.0f, 1.0f, 4.0f, 0.0f, 1.0f, -2.0f, 0, 1, 0);
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glBegin(GL_QUADS);									// Draw A Quad
 		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 4.0f, -5.0f);					// Top Left
@@ -251,17 +440,8 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 		glTexCoord2f(0.0,0.0);glVertex3f(-3.0f,0.0f, 0.0f);					// Bottom Left
 	glEnd();	// Done Drawing The Quad
 	//
-	if(end==1)
-	{
-		Update();
-	}
-	else
-	{
-		Ending();
-	}
 
-	
-
+	Update();
 	return TRUE;										// Keep Going
 
 }
@@ -578,18 +758,18 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 		else										// If There Are No Messages
 		{
 			// Draw The Scene.  Watch For ESC Key And Quit Messages From DrawGLScene()
-			if ((active && !DrawGLScene()) || keys[VK_ESCAPE])	// Active?  Was There A Quit Received?
+			if ( keys[VK_ESCAPE])	// Active?  Was There A Quit Received?
 			{
 				done=TRUE;							// ESC or DrawGLScene Signalled A Quit
 			}
 			else									// Not Time To Quit, Update Screen
 			{
+				Start();
 				Running();
-				SwapBuffers(hDC);
-				// Swap Buffers (Double Buffering)
+				SwapBuffers(hDC);	// Swap Buffers (Double Buffering)
 				
 			}
-
+//&& !DrawGLScene()
 			if (keys[VK_F1])						// Is F1 Being Pressed?
 			{
 				keys[VK_F1]=FALSE;					// If So Make Key FALSE

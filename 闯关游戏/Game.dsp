@@ -92,10 +92,6 @@ SOURCE=.\Enemies.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\FreeImage.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\Game.cpp
 # End Source File
 # Begin Source File
@@ -109,6 +105,14 @@ SOURCE=.\GameManager.h
 # Begin Source File
 
 SOURCE=.\Players.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\State.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\State.h
 # End Source File
 # End Target
 # End Project

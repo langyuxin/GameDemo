@@ -1,4 +1,4 @@
-//#include <windows.h>
+#include <windows.h>
 #include <math.h>
 #include "Class.h"
 
@@ -23,11 +23,9 @@ Player::Player(float x,float y,float z)
 	X=x;
 	Y=y;
 	Z=z;
-	flagm=0;
-	flaga=0;
-	flagj=0;
-	flagd=0;
 	Face=1;
+	Act.InitialAct(x,y,z);
+	attackstate=0;
 }
 
 Player::~Player()
@@ -36,79 +34,95 @@ Player::~Player()
 }
 
 
-void Player::run()
+void Player::act()
 {
-}
-void Player::walk(GLfloat& roll,GLuint a,int b)			
-{
-	if(roll<=1 &&flaga==0)
+	if(Act.getstate()==0)	
 	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(roll,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(roll+0.25f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(roll+0.25f,0.0f);glVertex3f( X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
-		GLfloat ac=0.05f;
-		if(b==3) X -= ac;
-		if(b==4) X += ac;
-		if(b==5) Z -= ac;
-		if(b==6) Z += ac;
-		roll += 0.25f;
-		Sleep(35);
+		if(Face==1)
+		{
+			Act.settexture(still[1]);
+		}
+		if(Face==-1)
+		{
+			Act.settexture(still[0]);
+		}
+		Act.still();
 	}
-	else if(flagm ) flagm = 0;
-}
-void Player::attack(GLfloat& roll,GLuint a)
-{
-	if(roll<=1)
+	if(Act.getstate()==1)	
 	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(roll,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(roll+0.25f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(roll+0.25f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
-		roll += 0.25f;
-		Sleep(35);
-	}
-	else flaga =0;
-	
-}
-void Player::die(GLfloat& roll,GLuint a)
-{
-	if(roll<=1 && flagd==1)
-	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(roll,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(roll+0.33f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(roll+0.33f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
-		roll += 0.33f;
-		Sleep(250);
-	}
-	else flagd=0;
+		if(Face==1)
+		{
+			Act.settexture(attack[1]);
 
-}
-void Player::jump()
-{
-}
-void Player::draw(GLuint a)
-{
-	if(flaga==0 && flagm ==0 && flagj==0)
-	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(0.0,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(1.0f,1.0f);glVertex3f(X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(1.0f,0.0f);glVertex3f( X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(0.0,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
+		}
+		if(Face==-1)
+		{
+			Act.settexture(attack[0]);
+		}
+		Act.attack(attackstate);
+		if(Act.getfps()>=1) attackstate=0;
 	}
+	if(Act.getstate()==2)	
+	{
+		GLfloat ac=0.05f;
+		if(movedirect==0)
+		{
+			Act.settexture(move[0]);
+			Z -= ac;
+		}
+		if(movedirect==1)
+		{
+			Act.settexture(move[1]);
+			Z += ac;
+		}
+		if(movedirect==2)
+		{
+			Act.settexture(move[2]);
+			X -= ac;
+		}
+		if(movedirect==3)
+		{
+			Act.settexture(move[3]);
+			X += ac;
+		}
+
+		Act.move(movedirect);
+		if(Act.getfps()>=1) movedirect=-1;
+	}
+	if(Act.getstate()==3)	Act.die();
+	if(Act.getstate()==4)	
+	{
+		GLfloat ac=0.05f,ad=0.5f;
+		if(Face==-1)
+		{
+			if(attackstate==0)
+			{
+				Act.settexture(jump[0]);
+			}
+			if(attackstate==1)
+			{
+				Act.settexture(jump[2]);
+			}
+		}
+		if(Face==1)
+		{
+			if(attackstate==0)
+			{
+				Act.settexture(jump[1]);
+			}
+			if(attackstate==1)
+			{
+				Act.settexture(jump[3]);
+			}
+		}
+		if(movedirect ==2) X-=ac;
+		if(movedirect ==3) X+=ac;
+		if(Act.getfps()<0.5f) Y +=ad;
+		if(Act.getfps()>=0.5f || Act.getfps()==0.75f) Y -=ad;
+		Act.jump(movedirect,attackstate);
+		if(Act.getfps()>=0.1f) movedirect=-1;
+	}
+
 }
 
 

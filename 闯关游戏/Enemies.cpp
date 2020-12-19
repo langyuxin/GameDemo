@@ -1,4 +1,4 @@
-//#include <windows.h>
+#include <windows.h>
 #include <math.h>
 #include "Class.h"
 Enemy::Enemy(float x,float y,float z)
@@ -16,85 +16,70 @@ Enemy::Enemy(float x,float y,float z)
 	DetectRange=ENEMY_DETECT_RANGE;
 	Time=5;
 	RewardScore=20;
-	flagm=0;
-	flagd=0;
-	flaga=0;
+	Act.InitialAct(x,y,z);
+	attackstate=0;
+	Face=-1;
 }
 Enemy::~Enemy()
 {
 
 }
 
-void Enemy::walk(GLfloat& roll,GLuint a,int b)			
+void Enemy::act()
 {
-	if(roll<=1 &&flaga==0 && flagd==0)
+	if(Act.getstate()==0)	
 	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(roll,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(roll+0.25f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(roll+0.25f,0.0f);glVertex3f( X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
-		GLfloat ac=0.1f;
-		if(b==-1) X -= ac;
-		if(b==1) X += ac;
-		if(b==5) Z -= ac;
-		if(b==6) Z += ac;
-		roll += 0.25f;
-		Sleep(35);
+		if(Face==1)
+		{
+			Act.settexture(still[1]);
+		}
+		if(Face==-1)
+		{
+			Act.settexture(still[0]);
+		}
+		Act.still();
 	}
-	else flagm = 0;
-}
-void Enemy::attack(GLfloat& roll,GLuint a)
-{
-	if(roll<=1 && flagd==0)
+	if(Act.getstate()==1)	
 	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(roll,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(roll+0.25f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(roll+0.25f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
-		roll += 0.25f;
-		Sleep(35);
+		if(Face==1)
+		{
+			Act.settexture(attack[1]);
+
+		}
+		if(Face==-1)
+		{
+			Act.settexture(attack[0]);
+		}
+		Act.attack(attackstate);
+		if(Act.getfps()>=1) attackstate=0;
 	}
-	else flaga=0;
+	if(Act.getstate()==2)	
+	{
+		GLfloat ac=0.05f;
+		if(movedirect==0)
+		{
+			Act.settexture(move[0]);
+			Z -= ac;
+		}
+		if(movedirect==1)
+		{
+			Act.settexture(move[1]);
+			Z += ac;
+		}
+		if(movedirect==2)
+		{
+			Act.settexture(move[2]);
+			X -= ac;
+		}
+		if(movedirect==3)
+		{
+			Act.settexture(move[3]);
+			X += ac;
+		}
+
+		Act.move(movedirect);
+		if(Act.getfps()>=1) movedirect=-1;
+	}
+	if(Act.getstate()==3)	Act.die();
 	
 }
-
-void Enemy::jump()
-{
-}
-
-void Enemy::die(GLfloat& roll,GLuint a)
-{
-	if(roll<=1 && flagd==1)
-	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(roll,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(roll+0.33f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(roll+0.33f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(roll,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
-		roll += 0.33f;
-		Sleep(50);
-	}
-
-}
-void Enemy::draw(GLuint a)
-{
-	if(flaga==0 && flagm ==0 && flagd==0)								//判断有没有在进行其他动作：攻击、移动等；
-	{
-		glBindTexture(GL_TEXTURE_2D, a);
-		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(0.0,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(1.0f,1.0f);glVertex3f(X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(1.0f,0.0f);glVertex3f( X+2, Y, Z);					// Bottom Right
-			glTexCoord2f(0.0,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-		glEnd();
-	}
-}
-

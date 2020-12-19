@@ -1,1 +1,0 @@
-OpenGL32.lib GLu32.lib GLaux.lib 

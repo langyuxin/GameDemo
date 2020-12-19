@@ -24,11 +24,15 @@
 #pragma comment(lib, "fmodvc.lib")
 #pragma comment(lib, "glu32.lib")
 
+#define WINDOW_WIDTH = 800
+#define WINDOW_HEIGHT = 600
+
 HDC			hDC=NULL;		// Private GDI Device Context
 
 HGLRC		hRC=NULL;		// Permanent Rendering Context
 HWND		hWnd=NULL;		// Holds Our Window Handle
 HINSTANCE	hInstance;		// Holds The Instance Of The Application
+
 HBITMAP		g_hBitmap = NULL;
 bool	keys[256];			// Array Used For The Keyboard Routine
 bool	active=TRUE;		// Window Active Flag Set To TRUE By Default
