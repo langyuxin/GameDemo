@@ -66,7 +66,45 @@ LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 
 
 
+GLuint CreateTexture1(CString filename )
+{
 
+     GLuint      texture;     
+	
+	_AUX_RGBImageRec *Image;				
+
+    if(Image = auxDIBImageLoadA( (const char*) filename ))
+	{
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+   
+  		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+		gluBuild2DMipmaps(GL_TEXTURE_2D, 3, Image->sizeX,
+                              Image->sizeY, GL_RGB,
+                              GL_UNSIGNED_BYTE, Image->data);
+	}
+
+
+  
+   
+  	if(Image)
+	{										
+		if (Image->data)
+			delete Image->data;			
+		delete Image;
+	}
+	return texture;
+
+
+}
 GLuint CreateTexture(CString filename )					//创建纹理
 {
 
@@ -126,7 +164,7 @@ void LoadGLTextures()
 		texturee[3] = CreateTexture("Texture\\enemy_die.bmp");
 	
 		textureBg[0] = CreateTexture("Texture\\1.bmp");
-		textureBg[1] = CreateTexture("Texture\\bg1.bmp");
+		textureBg[1] = CreateTexture1("Texture\\bg1.bmp");
 }
 
 
@@ -302,7 +340,7 @@ void Start(){	//开始页面加载
 void Text(GLvoid){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 		glLoadIdentity();	// Reset The Current Modelview Matrixf
-		gluLookAt(0.0f, 0.0f, 25.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
+		gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
 		
 		//glTranslatef(0.0f,0.0f,-1.0f);						// Move One Unit Into The Screen
 		// Blue Text

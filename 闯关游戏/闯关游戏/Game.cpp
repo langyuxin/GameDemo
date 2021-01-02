@@ -38,6 +38,9 @@ bool	end=false;		//end来判断游戏结束与否;
 
 float	camera=-5;
 
+int		fail = 0;
+int		victory = 0;
+
 GLuint	texture[12];			// 保存我方角色纹理
 GLuint	attack[2];
 GLuint	move[4];
@@ -57,8 +60,8 @@ GLuint	textureBg[5];			//背景加载
 FSOUND_SAMPLE *sound_2;			//攻击	
 FSOUND_STREAM *sound_1;
 FSOUND_SAMPLE *sound_3;			//行走
-FSOUND_SAMPLE *sound_4;			
-FSOUND_SAMPLE *sound_5;
+FSOUND_SAMPLE *sound_4;			//胜利
+FSOUND_SAMPLE *sound_5;			//失败
 
 
 
@@ -162,6 +165,8 @@ GLvoid InitFMOD(GLvoid){
 			sound_1=FSOUND_Stream_OpenFile("Music/bg.mp3",0,  0);
 			sound_2=FSOUND_Sample_Load(FSOUND_FREE, "Music/pingA2.wav", FSOUND_2D, 0);
 			sound_3=FSOUND_Sample_Load(FSOUND_FREE, "Music/move.wav", FSOUND_2D, 0);
+			sound_4=FSOUND_Sample_Load(FSOUND_FREE, "Music/victory.wav", FSOUND_2D, 0);
+			sound_5=FSOUND_Sample_Load(FSOUND_FREE, "Music/defeat.wav", FSOUND_2D, 0);
 		}
 }
 // 输出字体
@@ -223,6 +228,9 @@ GLvoid FreeFMOD(GLvoid)
 	if(sound_1) FSOUND_Stream_Close(sound_1);
 	if(sound_2) FSOUND_Sample_Free(sound_2);
 	if(sound_3) FSOUND_Sample_Free(sound_3);
+	if(sound_4) FSOUND_Sample_Free(sound_4);
+	if(sound_5) FSOUND_Sample_Free(sound_5);
+
 }
 GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize The GL Window
 {
@@ -352,9 +360,11 @@ void Start()							//判断是否开始游戏
 			FSOUND_Stream_Play (0,sound_1);			//游戏开始并播放背景音乐
 		}
 		else
-		{
+		{	
+			FSOUND_Stream_Stop (sound_1);
 			Ending();
-		//	FSOUND_Stream_Stop (0,sound_1);			//背景音乐停止
+		
+		//				//背景音乐停止
 		}
 	}
 
@@ -433,6 +443,7 @@ void Ending()					//游戏结束
 	gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
 	if(p1.getChances()>0)
 	{
+	
 		glBindTexture(GL_TEXTURE_2D, textureBg[2]);
 		glBegin(GL_QUADS);									// Draw A Quad
 			glTexCoord2f(0.0,1.0);glVertex3f(-4.0f, 2.2f, 0.0f);					// Top Left
@@ -440,6 +451,10 @@ void Ending()					//游戏结束
 			glTexCoord2f(1.0,0.0);glVertex3f( 4.0f,-2.2f, 0.0f);					// Bottom Right
 			glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
 		glEnd();
+		if(!victory){
+			FSOUND_PlaySound(4,sound_4);
+		}
+		victory++;
 	}
 	if(p1.getChances()==0)
 	{
@@ -450,6 +465,10 @@ void Ending()					//游戏结束
 			glTexCoord2f(1.0,0.0);glVertex3f( 4.0f,-2.2f, 0.0f);					// Bottom Right
 			glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
 		glEnd();
+		if(!fail){
+			FSOUND_PlaySound(5,sound_5);
+		}
+		fail++;
 	}
 		
 }
