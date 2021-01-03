@@ -20,6 +20,8 @@
 
 #define WINDOW_WIDTH = 800
 #define WINDOW_HEIGHT = 600
+#define b_weight 0.6
+#define b_height 0.1
 
 #pragma comment(lib,"FreeImaged.lib")
 #pragma comment(lib, "fmodvc.lib")
@@ -36,6 +38,8 @@ bool	fullscreen=TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
 bool	keyStart = false;	//游戏是否开始
 bool	end=false;		//end来判断游戏结束与否;
 
+float	camera=-5;
+
 GLuint	texture[12];			// 保存我方角色纹理
 GLuint	attack[2];
 GLuint	move[4];
@@ -44,31 +48,61 @@ GLuint	still[2];
 GLuint	jump[4];
 GLuint	texturee[12];			//保存敌方角色纹理
 
+GLuint	attack2[2];
+GLuint	move2[4];
+GLuint	die2;
+GLuint	still2[2];
+GLuint	jump2[4];
+
 GLuint	attacke[2];
 GLuint	movee[4];
 GLuint	diee;
 GLuint	stille[2];
 
+GLuint	boss_attacke[2];			//第一关boss纹理
+GLuint	boss_movee[4];
+GLuint	boss_diee;
+GLuint	boss_stille[2];
+GLuint	boss_bullet[2];
+
+GLuint	boss2_attacke[2];			//第二关boss纹理
+GLuint	boss2_movee[4];
+GLuint	boss2_diee;
+GLuint	boss2_stille[2];
+GLuint	boss2_bullet[2];
+
 GLuint	base;						// 输出字体的显示列表号
-GLuint	textureBg[5];			//背景加载
+GLuint	textureBg[10];			//背景加载
 
 FSOUND_SAMPLE *sound_2;
 FSOUND_STREAM *sound_1;
 
-int	enemynum=0;
+int	enemynum=0,barriesnum=2;
 
 
 
-Player p1=Player(-2.5,0,-3);	//玩家角色
-Enemy e1=Enemy(0,0,-3);			//
-Enemy es[100];					//NPC角色数组
+Player p1=Player(-7,-1.8,0.005);	//玩家角色1
+Player p2=Player(0,-1.8,-3);		//玩家角色2
+//Enemy e1=Enemy(0,-1.8,0.005);			//
+Zhaoyun boss1;
+Zhaoyun	boss2;
+
+Enemy es[100],e1;					//NPC角色数组
 GameManager g1;					//碰撞检测对象
 
+rectangle	barries[5];			//障碍物
+Trap		traps[5];			//陷阱
+Bullet		b1,b2;					//子弹
+float		Scene;				//关数
 
-LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
+
+
+
+LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	//De claration For WndProc
 void InitGame();	//游戏初始化
 int DrawGLScene(GLvoid);//游戏主体函数
 void Ending();
+void enemyAct(int i);
 
 GLuint CreateTexture(CString filename )					//创建纹理
 {
@@ -112,36 +146,74 @@ void LoadGLTextures()
 {
 
 		texture[0] = CreateTexture("Texture\\Court.bmp");
-		attack[1]=texture[1] = CreateTexture("Texture1\\attackr.bmp");
-		attack[0]=texture[2] = CreateTexture("Texture1\\attackl.bmp");
-		move[2]=texture[3] = CreateTexture("Texture1\\walkl.bmp");
-		move[3]=texture[4] = CreateTexture("Texture1\\walkr.bmp");
+		attack[1]=texture[1] = CreateTexture("Texture2\\attackr.bmp");				//角色一纹理
+		attack[0]=texture[2] = CreateTexture("Texture2\\attackl.bmp");
+		move[2]=texture[3] = CreateTexture("Texture2\\walkl.bmp");
+		move[3]=texture[4] = CreateTexture("Texture2\\walkr.bmp");
 		move[0]=texture[5] = CreateTexture("Texture\\walku.bmp");
 		move[1]=texture[6] = CreateTexture("Texture\\walkd.bmp");
-		still[1]=texture[7] = CreateTexture("Texture1\\stillr.bmp");
-		still[0]=texture[8] = CreateTexture("Texture1\\stilll.bmp");
+		still[1]=texture[7] = CreateTexture("Texture2\\stillr.bmp");
+		still[0]=texture[8] = CreateTexture("Texture2\\stilll.bmp");
 		die=texture[10] = CreateTexture("Texture\\die.bmp");
-		jump[1] = CreateTexture("Texture1\\jumpr.bmp");
-		jump[0] = CreateTexture("Texture1\\jumpl.bmp");
-		jump[3] = CreateTexture("Texture1\\jumpattackr.bmp");
-		jump[2] = CreateTexture("Texture1\\jumpattackl.bmp");
+		jump[1] = CreateTexture("Texture2\\jumpr.bmp");
+		jump[0] = CreateTexture("Texture2\\jumpl.bmp");
+		jump[3] = CreateTexture("Texture2\\jumpattackr.bmp");
+		jump[2] = CreateTexture("Texture2\\jumpattackl.bmp");
 
 
-		texturee[0] = CreateTexture("Texture\\enemy_sl.bmp");
+		attack2[1] = CreateTexture("Texture1\\attackr.bmp");				//角色二纹理
+		attack2[0] = CreateTexture("Texture1\\attackl.bmp");
+		move2[2] = CreateTexture("Texture1\\walkl.bmp");
+		move2[3] = CreateTexture("Texture1\\walkr.bmp");
+		move2[0] = CreateTexture("Texture1\\walkl.bmp");
+		move2[1] = CreateTexture("Texture1\\walkr.bmp");
+		still2[1]= CreateTexture("Texture1\\stillr.bmp");
+		still2[0]= CreateTexture("Texture1\\stilll.bmp");
+		die2	 = CreateTexture("Texture1\\die.bmp");
+		jump2[1] = CreateTexture("Texture1\\jumpr.bmp");
+		jump2[0] = CreateTexture("Texture1\\jumpl.bmp");
+		jump2[3] = CreateTexture("Texture1\\jumpattackr.bmp");
+		jump2[2] = CreateTexture("Texture1\\jumpattackl.bmp");
+
+		texturee[0] = CreateTexture("Texture\\enemy_sl.bmp");								//小兵纹理
 		texturee[1] = CreateTexture("Texture\\enemy_wl.bmp");
 		texturee[2] = CreateTexture("Texture\\enemy_al.bmp");
-		texturee[3] = CreateTexture("Texture\\enemy_die.bmp");
+		diee=texturee[3] = CreateTexture("Texture\\enemy_die.bmp");
 
-		attacke[1]=texture[1] = CreateTexture("Texture1\\enemyattackr.bmp");
-		attacke[0]=texture[2] = CreateTexture("Texture1\\enemyattackl.bmp");
-		movee[2]=texture[3] = CreateTexture("Texture1\\enemywalkl.bmp");
-		movee[3]=texture[4] = CreateTexture("Texture1\\enemywalkr.bmp");
-		stille[1]=texture[7] = CreateTexture("Texture1\\enemystillr.bmp");
-		stille[0]=texture[8] = CreateTexture("Texture1\\enemystilll.bmp");
+		attacke[1]=texture[1] = CreateTexture("Texture\\enemy_ar.bmp");						//小兵纹理
+		attacke[0]=texture[2] = CreateTexture("Texture\\enemy_al.bmp");
+		movee[2]=texture[3] = CreateTexture("Texture\\enemy_wl.bmp");
+		movee[3]=texture[4] = CreateTexture("Texture\\enemy_wr.bmp");
+		stille[1]=texture[7] = CreateTexture("Texture\\enemy_sr.bmp");
+		stille[0]=texture[8] = CreateTexture("Texture\\enemy_sl.bmp");
+
+		boss_attacke[1]=texture[1] = CreateTexture("Texture\\Zhaoyun_ar.bmp");				//boss1纹理
+		boss_attacke[0]=texture[2] = CreateTexture("Texture\\Zhaoyun_al.bmp");
+		boss_movee[2]=texture[3] = CreateTexture("Texture\\Zhaoyun_wl.bmp");
+		boss_movee[3]=texture[4] = CreateTexture("Texture\\Zhaoyun_wr.bmp");
+		boss_stille[1]=texture[7] = CreateTexture("Texture\\Zhaoyun_sr.bmp");
+		boss_stille[0]=texture[8] = CreateTexture("Texture\\Zhaoyun_sl.bmp");
+		boss_bullet[1] = CreateTexture("Texture\\Zhaoyun_br.bmp");
+		boss_bullet[0] = CreateTexture("Texture\\Zhaoyun_bl.bmp");
+
+		boss2_attacke[1]= CreateTexture("Texture\\Zhaoyun_ar.bmp");							//boss2纹理
+		boss2_attacke[0]= CreateTexture("Texture\\Zhaoyun_al.bmp");
+		boss2_movee[2] = CreateTexture("Texture\\Zhaoyun_wl.bmp");
+		boss2_movee[3] =CreateTexture("Texture\\Zhaoyun_wr.bmp");
+		boss2_stille[1]= CreateTexture("Texture\\Zhaoyun_sr.bmp");
+		boss2_stille[0]= CreateTexture("Texture\\Zhaoyun_sl.bmp");
+		boss2_bullet[1] = CreateTexture("Texture\\Zhaoyun_br.bmp");
+		boss2_bullet[0] = CreateTexture("Texture\\Zhaoyun_bl.bmp");
 
 		textureBg[0] = CreateTexture("Texture1\\1.bmp");
 		textureBg[1] = CreateTexture("Texture\\fail.bmp");
 		textureBg[2] = CreateTexture("Texture\\victory.bmp");
+		textureBg[3] = CreateTexture("Texture1\\scene2.bmp");
+		textureBg[4] = CreateTexture("Texture1\\river.bmp");
+		textureBg[5] = CreateTexture("Texture1\\barrier.bmp");
+		textureBg[6] = CreateTexture("Texture\\background.bmp");
+		textureBg[7] = CreateTexture("Texture\\ground2.bmp");
+
 }
 ///音乐初始化
 GLvoid InitFMOD(GLvoid){
@@ -187,7 +259,7 @@ GLvoid KillFontGL(GLvoid)												// 删除保存字体的显示表
 }
 GLvoid glPrint(const char *pstr)									// 建立Print函数
 {
-/*	char		text[256];												// 用以保存格式化后的字符串
+	char		text[256];												// 用以保存格式化后的字符串
 	va_list		ap;														// 指向参数列表的指针
 
 	if (pstr == NULL)													// 没有可输出的字符？
@@ -195,7 +267,7 @@ GLvoid glPrint(const char *pstr)									// 建立Print函数
 
 	va_start(ap, pstr);													// 遍历字符串，查找变量
 		vsprintf(text, pstr, ap);										// 将变量转换为显示的数字
-	va_end(ap);	*/														// 结果保存在text内
+	va_end(ap);															// 结果保存在text内
 
 	glPushAttrib(GL_LIST_BIT);											// 显示表状态入栈
 	glListBase(base -0);
@@ -249,29 +321,143 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	InitGame();
 	return TRUE;										// Initialization Went OK
 }
-void SetWorld()						//记载游戏地图
-{			
-	
+void SetWorld()						//加载游戏地图
+{	
+	if(Scene==1)
+	{
+		if(camera<p1.getX() &&camera<5) camera=p1.getX();
+		gluLookAt(camera, 0.0f, 5.0f, camera, 0.0f, 0.0f, 0, 1, 0);
 
+		glBindTexture(GL_TEXTURE_2D, textureBg[3]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f(-8.0f, 2.2f, 0.0f);					// Top Left
+			glTexCoord2f(0.1,1.0);glVertex3f( 8.0f, 2.2f, 0.0f);					// Top Right
+			glTexCoord2f(0.1,0.0);glVertex3f( 8.0f,-2.2f, 0.0f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f(-8.0f,-2.2f, 0.0f);					// Bottom Left
+		glEnd();
+		glBindTexture(GL_TEXTURE_2D, textureBg[4]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f( -4.0f, -1.8f, 0.001f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( -5.0f, -1.8f, 0.001f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( -5.0f,-2.2f, 0.001f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f( -4.0f,-2.2f, 0.001f);					// Bottom Left
+		glEnd();
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f( 1.0f, -1.8f, 0.001f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( 0.0f, -1.8f, 0.001f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( 0.0f,-2.2f, 0.001f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f( 1.0f,-2.2f, 0.001f);					// Bottom Left
+		glEnd();
+		glBindTexture(GL_TEXTURE_2D, textureBg[5]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f( 0.0f, -1.3f, 0.001f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( -0.5f, -1.3f, 0.001f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( -0.5f,-2.0f, 0.001f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f( 0.0f,-2.0f, 0.001f);					// Bottom Left
+		glEnd();
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f( -1.5f, -1.3f, 0.001f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( -2.0f, -1.3f, 0.001f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( -2.0f,-2.0f, 0.001f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f( -1.5f,-2.0f, 0.001f);					// Bottom Left
+		glEnd();
+	}
+	if(Scene==2)
+	{
+		float z=0;
+		if(camera<p2.getX() &&camera<5) camera=p2.getX();
+		gluLookAt(camera, 1.0f, 3.0f, camera, 0.0f, 0.0f, 0, 1, 0);
+
+		glBindTexture(GL_TEXTURE_2D, textureBg[6]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f(-10.0f, 2.2f, -5.0f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( 8.0f, 2.2f, -5.0f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( 8.0f,-2.2f, -5.0f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f(-10.0f,-2.2f, -5.0f);					// Bottom Left
+		glEnd();
+		glBindTexture(GL_TEXTURE_2D, textureBg[7]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f( -10.0f, -1.8f, -5.0f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( 8.0f, -1.8f, -5.0f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( 8.0f,-1.8f, 6.0f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f( -10.0f,-1.8f, 6.0f);					// Bottom Left
+		glEnd();
+	}
+
+	if(Scene==1.5)														//第一关结束结算画面
+	{
+		gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
+				
+		glBindTexture(GL_TEXTURE_2D, textureBg[0]);
+		glBegin(GL_QUADS);									// Draw A Quad
+			glTexCoord2f(0.0,1.0);glVertex3f(-4.0f, 2.2f, 0.0f);					// Top Left
+			glTexCoord2f(1.0,1.0);glVertex3f( 4.0f, 2.2f, 0.0f);					// Top Right
+			glTexCoord2f(1.0,0.0);glVertex3f( 4.0f,-2.2f, 0.0f);					// Bottom Right
+			glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
+		glEnd();	
+	}
 }
+
 void InitGame()							//游戏初始化
 {
+	barries[0].InitialRec(-2,-1.8,0.001,0.5,0.5);
+	barries[1].InitialRec(-0.5,-1.8,0.001,0.5,0.5);
+//	barries[2].InitialRec(1.2,-1.8,0.001,0.5,0.5);
 	p1.setattack(attack);
 	p1.setmove(move);
 	p1.setstill(still);
 	p1.setdie(die);	
 	p1.setjump(jump);
+	p1.settexturetype(0);
 
-	e1.setattack(attacke);
-	e1.setmove(movee);
+	p2.setattack(attack2);
+	p2.setmove(move2);
+	p2.setstill(still2);
+	p2.setdie(die2);	
+	p2.setjump(jump2);
+	p2.settexturetype(1);
+
+	e1.Initial(-3,-1.8,0.005);
 	e1.setstill(stille);
 	e1.setdie(diee);
+	for(int i=0;i<5;i++)
+	{
+		es[i].Initial(-9,-1.8,0.005);
+		es[i].setattack(attacke);
+		es[i].setmove(movee);
+		es[i].setstill(stille);
+		es[i].setdie(diee);
+		es[i].settexturetype(0);
+		enemynum++;
+	}
 
+	boss1.Initial(4,-1.8,0.005);
+	boss1.setattack(boss_attacke);
+	boss1.setmove(boss_movee);
+	boss1.setstill(boss_stille);
+	boss1.setdie(boss_diee);
+	boss1.setbullet(boss_bullet);
+	boss1.setdirect(boss1.getFace());
+	b1.setbullet(boss_bullet);
+	b1.Initial(-11,-1.8,0.005);
+
+	boss2.Initial(4,-1.8,-3);
+	boss2.setattack(boss2_attacke);
+	boss2.setmove(boss2_movee);
+	boss2.setstill(boss2_stille);
+	boss2.setdie(boss2_diee);
+	boss2.setbullet(boss2_bullet);
+	boss2.setdirect(boss2.getFace());
+	b2.setbullet(boss2_bullet);
+	b2.Initial(-11,-1.8,0.-3);
+
+	traps[0].setx(-5,-4);
+	traps[1].setx(0,1);
 	InitFMOD();
 	BuildFontGL();
-
+	
+	Scene=1;
 	end=true;
-	enemynum=1;
 }
 void Start()							//判断是否开始游戏
 {
@@ -279,13 +465,9 @@ void Start()							//判断是否开始游戏
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 		glLoadIdentity();	// Reset The Current Modelview Matrixf
-		gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
-		//	glTranslatef(0.0f, 0.0f, -1.0f);
-		//	glColor3f(1.0f, 1.0f, 0.0f); // 颜色
-		//	glRasterPos2f(-0.4f, 0.30f); // 输出位置
 
-		//	glPrint("Active OpenGL Text With NeHe ");  // 输出文字到屏幕
-			
+		gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
+				
 		glBindTexture(GL_TEXTURE_2D, textureBg[0]);
 		glBegin(GL_QUADS);									// Draw A Quad
 			glTexCoord2f(0.0,1.0);glVertex3f(-4.0f, 2.2f, 0.0f);					// Top Left
@@ -303,7 +485,7 @@ void Start()							//判断是否开始游戏
 		}
 		else
 		{
-			Ending();								//游戏结束
+			Ending();
 		//	FSOUND_Stream_Stop (0,sound_1);			//背景音乐停止
 		}
 	}
@@ -313,64 +495,132 @@ void Running()
 {
 		if(keys['J'])					//攻击
 		{
-			p1.setattackstate(1);
-			if(p1.getstate()!=4)
-			{	
-				p1.setstate(1);
-				if(p1.getfps()!=0 &&p1.getstate()!=1) p1.setfps(0);
-				FSOUND_PlaySound(5,sound_2);
+			if(Scene==1)
+			{
+				p1.setattackstate(1);
+				if(p1.getstate()!=4)
+				{	
+					p1.setstate(1);
+					if(p1.getfps()!=0 &&p1.getstate()!=1) p1.setfps(0);
+					FSOUND_PlaySound(5,sound_2);
+				}
+			}
+			if(Scene==2)
+			{
+				p2.setattackstate(1);
+				if(p2.getstate()!=4)
+				{	
+					p2.setstate(1);
+					if(p2.getfps()!=0 &&p2.getstate()!=1) p2.setfps(0);
+					FSOUND_PlaySound(5,sound_2);
+				}
 			}
 		}
 		if(keys['W'] )	//向上走
 		{
-			p1.setmovedirect(0);
-			if(p1.getstate()==0)
+			if(p2.getmovedirect()!=0)
 			{
-				p1.setstate(2);
+				p2.setfps(0);
+			}
+			p2.setmovedirect(0);
+			if(p2.getstate()==0)
+			{
+				p2.setstate(2);
 			}
 		}
 		if(keys['S']  )	//向下走
 		{
-			p1.setmovedirect(1);	
-			if(p1.getstate()==0)
+			if(p2.getmovedirect()!=1)
 			{
-				p1.setstate(2);
+				p2.setfps(0);
+			}
+			p2.setmovedirect(1);	
+			if(p2.getstate()==0)
+			{
+				p2.setstate(2);
 			}
 		}
 		if(keys['D'] )	//向右走
 		{
-			p1.setmovedirect(3);
-			if(p1.getstate()==0)
+			if(Scene==1)
 			{
-				p1.setstate(2);
+				p1.setmovedirect(3);
+				if(p1.getstate()==0)
+				{
+					p1.setstate(2);
+				}
+				if(p1.getstate()!=1&&p1.getstate()!=3)
+				{
+					p1.setFace(1);
+				}
 			}
-			if(p1.getstate()!=1&&p1.getstate()!=3)
+			if(Scene==2)
 			{
-				p1.setFace(1);
+				p2.setmovedirect(3);
+				if(p2.getstate()==0)
+				{
+					p2.setstate(2);
+				}
+				if(p2.getstate()!=1&&p2.getstate()!=3)
+				{
+					p2.setFace(1);
+				}
 			}
 		}
 		if(keys['A'] )	//向左走
 		{
-			p1.setmovedirect(2);
-			if(p1.getstate()==0)
+			if(Scene==1)
 			{
-				p1.setstate(2);
+				p1.setmovedirect(2);
+				if(p1.getstate()==0)
+				{
+					p1.setstate(2);
+				}
+				if(p1.getstate()!=1&&p1.getstate()!=3)
+				{
+					p1.setFace(-1);
+				}
 			}
-			if(p1.getstate()!=1&&p1.getstate()!=3)
+			if(Scene==2)
 			{
-				p1.setFace(-1);
+				p2.setmovedirect(2);
+				if(p2.getstate()==0)
+				{
+					p2.setstate(2);
+				}
+				if(p2.getstate()!=1&&p2.getstate()!=3)
+				{
+					p2.setFace(-1);
+				}
 			}
 		}
-		if(keys['K'])				//按“K”跳跃
+		if(keys['K'])
 		{
-			if(p1.getfps()!=0 &&p1.getstate()!=4) p1.setfps(0);
-			p1.setstate(4);	
+			if(Scene==1)
+			{
+				if(p1.getfps()!=0 &&p1.getstate()!=4) p1.setfps(0);
+				p1.setstate(4);	
+			}
+			if(Scene==2)
+			{
+				if(p2.getfps()!=0 &&p2.getstate()!=4) p2.setfps(0);
+				p2.setstate(4);	
+			}
 		}
 		
-		if(keys[' '])				//按空格键开始游戏
+		if(keys[' '])
 		{
 			keyStart = true;	
 		}
+		if(keys['\r'])
+		{
+			if(Scene==1.5) 
+			{
+				Scene=2;
+				camera=-5;
+			}
+		}
+
 }
 
 void Ending()					//游戏结束
@@ -378,7 +628,7 @@ void Ending()					//游戏结束
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 	glLoadIdentity();	// Reset The Current Modelview Matrix
 	gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
-	if(p1.getChances()>0)
+	if(p1.getChances()>0)															//游戏通关
 	{
 		glBindTexture(GL_TEXTURE_2D, textureBg[2]);
 		glBegin(GL_QUADS);									// Draw A Quad
@@ -388,7 +638,7 @@ void Ending()					//游戏结束
 			glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
 		glEnd();
 	}
-	if(p1.getChances()==0)
+	if(p1.getChances()==0)															//游戏通关失败
 	{
 		glBindTexture(GL_TEXTURE_2D, textureBg[1]);
 		glBegin(GL_QUADS);									// Draw A Quad
@@ -401,21 +651,258 @@ void Ending()					//游戏结束
 		
 }
 
+void enemyAct(int i)																//小兵的AI
+{
+	int  temp=rand()%100;
+	if(temp==0 || temp==19)
+	{
+		if(es[i].getX()+e_weight < p1.getX())
+		{
+			es[i].setFace(1);
+			es[i].setmovedirect(3);
+			es[i].setstate(2);
+		}
+		if(es[i].getX()+e_weight > p1.getX()+p_weight)
+		{
+			es[i].setFace(-1);
+			es[i].setmovedirect(2);
+			es[i].setstate(2);
+		}
+	}
+	if(temp==1)
+	{
+		es[i].setstate(1);
+		es[i].setattackstate(1);
+	}
+}
+void bossAct(Zhaoyun& boss1,Player p1,Bullet& b1)									//第一关bossAI
+{
+	boss1.setdistance(boss1.getX()-(p1.getX()+p_weight));
+	if(boss1.getdistance()<=2 && boss1.getdistance()>=0)
+	{
+		boss1.setFace(-1);
+		if(p1.getZ()<boss1.getZ())
+		{
+			if(boss1.getmovedirect()!=0)
+			{
+				boss1.setfps(0);
+			}
+			boss1.setmovedirect(0);
+			boss1.setstate(2);
+
+		}
+		if(p1.getZ()>boss1.getZ())
+		{
+			if(boss1.getmovedirect()!=1)
+			{
+				boss1.setfps(0);
+			}
+			boss1.setmovedirect(1);
+			boss1.setstate(2);
+
+		}
+		if(p1.getZ()==boss1.getZ())
+		{
+			boss1.setstate(0);
+		}
+		if(b1.getX()<=-5 || b1.getX()>=10)
+		{
+			if(boss1.getstate() != 1)  
+			{
+				boss1.setfps(0);
+				boss1.setstate(1);
+				b1.setdirect(-1);
+				b1.Initial(boss1.getX()-b_weight,boss1.getY(),boss1.getZ());
+				b1.setspeed(0.1);
+			}
+		}
+		return ;
+	}
+	if(boss1.getdistance()<0 && boss1.getdistance()>=-2)
+	{
+		boss1.setFace(1);
+		if(p1.getZ()<boss1.getZ())
+		{
+			if(boss1.getmovedirect()!=0)
+			{
+				boss1.setfps(0);
+			}
+			boss1.setmovedirect(0);
+			boss1.setstate(2);
+
+		}
+		if(p1.getZ()>boss1.getZ())
+		{
+			if(boss1.getmovedirect()!=1)
+			{
+				boss1.setfps(0);
+			}
+			boss1.setmovedirect(1);
+			boss1.setstate(2);
+
+		}
+		if(p1.getZ()==boss1.getZ())
+		{
+			boss1.setstate(0);
+		}
+		if(b1.getX()<=-5 || b1.getX()>=12)
+		{
+			if(boss1.getstate() != 1)  
+			{
+				boss1.setfps(0);
+				boss1.setstate(1);
+				b1.setdirect(1);
+				b1.Initial(boss1.getX(),boss1.getY(),boss1.getZ());
+				b1.setspeed(-0.1);
+			}
+		}
+		return ;
+	}
+	if(boss1.getX()<= 4 &&boss1.getfps()==0)
+	{
+		boss1.setFace(1);
+		boss1.setstate(2);
+		boss1.setmovedirect(3);
+	}
+	if((boss1.getX()+e_weight)>=6 &&boss1.getfps()==0)
+	{
+		boss1.setFace(-1);
+		boss1.setstate(2);
+		boss1.setmovedirect(2);
+	}
+	if(boss1.getX()>4 ||boss1.getX() <6)
+	{
+		if(boss1.getFace()==1)
+		{
+			boss1.setstate(2);
+			boss1.setmovedirect(3);
+		}
+		if(boss1.getFace()==-1)
+		{
+			boss1.setstate(2);
+			boss1.setmovedirect(2);
+		}
+	}
+
+}
+
 void Update()					//敌我双方角色的动作更新
 {
-
-	p1.act();
-	e1.act();
-	
-	if( g1.HumanCollision(p1,e1) && p1.getattackstate()==1)
+	if(Scene==1)
+	{
+		int a,flag=0;
+		for(int i=0;i<barriesnum;i++)							//人物与障碍物的碰撞
 		{
-			enemynum--;
-			if(enemynum ==0)  end=0;		//敌人数为0，游戏结束
+			a=g1.BarriesCollision(p1,barries[i]);
+			if(a==0) 
+			{
+				p1.setX(barries[i].getX()-p_weight);
+				flag=1;
+			}
+			if(a==3)
+			{
+				p1.setX(barries[i].getX()+p_weight);
+				flag=1;
+			}
+
+			if(a==1)
+			{
+				p1.setY(barries[i].getY()+barries[i].getheight());
+				flag=1;
+			}
+			if(a==2)   flag=1;
+
 		}
-	if(g1.HumanCollision(p1,e1) && e1.getattackstate()==1) 
+	/*	if(flag==0 && p1.getY()!=-1.8f &&p1.getstate()!=4) 
+			{
+				if(p1.getX()<traps[0].getx1 () || ((p1.getX()+p_weight)>traps[0].getx2 ()))
+				p1.setY(-1.8);
+			}*/
+		for(i=0;i<5;i++)
+		{
+			if(p1.getX()>=traps[i].getx1() && (p1.getX()+p_weight)<traps[i].getx2() && p1.getstate()!=4)				//河流等无地面的地方
+			{
+				p1.setY(p1.getY()-0.1f);
+				if(p1.getY()<-2.2)	
+				{
+					p1.setChances(p1.getChances()-1);
+					if(p1.getChances()==0)  end=0;
+				}
+				flag=1;
+			}
+		}
+		if(flag==0 && p1.getY()!=-1.8f &&p1.getstate()!=4) 
+		{
+			//if(p1.getX()<traps[0].getx1 () || ((p1.getX()+p_weight)>traps[0].getx2 ()))
+			p1.setY(-1.8);
+		}
+		if(e1.getstate()!=3 ) e1.act();
+		if(e1.getstate()==3 && e1.getfps()!=0) e1.act();
+		p1.act();
+		if( g1.HumanCollision(p1,e1) && p1.getattackstate()==1)
+		{
+			if(e1.getstate()!=3) e1.setfps(0.001);
+			e1.setstate(3);	
+		}
+	//	if(e1.getstate()!=3) e1.act();								//敌人行动更新
+		for( i=0;i<5;i++)									
+		{
+			if(es[i].getstate()==3 && es[i].getfps()==0)	continue;
+			if(es[i].getstate()==3 && es[i].getfps()!=0) 
+			{
+				es[i].act();
+				continue;
+			}
+			if(es[i].getstate()!=3) es[i].act();
+		
+			enemyAct(i);
+			if( g1.HumanCollision(p1,es[i]) && p1.getattackstate()==1)
+			{
+				es[i].setstate(3);
+				es[i].setfps(0.001);
+			}
+			if( g1.HumanCollision(p1,es[i]) && es[i].getattackstate()==1)
+			{
+				p1.setChances(p1.getChances()-1);
+			}
+
+		}
+		boss1.act();
+		bossAct(boss1,p1,b1);
+		b1.draw();
+		b1.setX(b1.getX()-b1.getspeed());
+		if( g1.HumanCollision(p1,boss1) && p1.getattackstate()==1 && boss1.getstate()!=3)
+		{
+			boss1.setstate(3);
+			Scene +=0.5;										//第一关boss死亡，进入第二关。
+
+		}
+	
+	if( g1.BulletCollision(p1,b1) )							//子弹与人物的碰撞
 	{
 		p1.setChances(p1.getChances()-1);
-		if(p1.getChances()==0) end=0;     //玩家命数为0，游戏结束
+
+		if(p1.getChances()==0) end=0;		//玩家死亡且命数为0，游戏结束
+	}
+	}
+	if(Scene==2)
+	{
+		p2.act();
+		boss2.act();
+		bossAct(boss2,p2,b2);
+		b2.draw();
+		b2.setX(b2.getX()-b2.getspeed());
+		if( g1.HumanCollision(p2,boss2) && p2.getattackstate()==1 && boss2.getstate()!=3)
+		{
+			boss2.setstate(3);
+			end=0;		//boss死亡，游戏结束
+		}
+		if( g1.BulletCollision(p2,b2) )							//子弹与人物的碰撞
+		{
+			p2.setChances(p2.getChances()-1);
+			p1.setChances(p1.getChances()-1);
+			if(p2.getChances()==0) end=0;		//玩家死亡且命数为0，游戏结束
+		}
 	}
 	
 }
@@ -425,23 +912,7 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 	glLoadIdentity();	// Reset The Current Modelview Matrix
 
 	SetWorld();			//加载游戏地图
-	gluLookAt(0.0f, 1.0f, 4.0f, 0.0f, 1.0f, -2.0f, 0, 1, 0);
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glBegin(GL_QUADS);									// Draw A Quad
-		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 4.0f, -5.0f);					// Top Left
-		glTexCoord2f(1.0,1.0);glVertex3f( 3.0f, 4.0f, -5.0f);					// Top Right
-		glTexCoord2f(1.0,0.0);glVertex3f( 3.0f,0.0f, -5.0f);					// Bottom Right
-		glTexCoord2f(0.0,0.0);glVertex3f(-3.0f,0.0f, -5.0f);					// Bottom Left
-	glEnd();
-	glBegin(GL_QUADS);									// Draw A Quad
-		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 0.0f, -5.0f);					// Top Left
-		glTexCoord2f(1.0,1.0);glVertex3f( 3.0f, 0.0f, -5.0f);					// Top Right
-		glTexCoord2f(1.0,0.0);glVertex3f( 3.0f,0.0f, 0.0f);					// Bottom Right
-		glTexCoord2f(0.0,0.0);glVertex3f(-3.0f,0.0f, 0.0f);					// Bottom Left
-	glEnd();	// Done Drawing The Quad
-	//
-
-	Update();
+	Update();			//游戏中变化更新
 	return TRUE;										// Keep Going
 
 }
@@ -736,7 +1207,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 	}
 
 	// Create Our OpenGL Window
-	if (!CreateGLWindow("NeHe's First Polygon Tutorial",640,480,16,fullscreen))
+	if (!CreateGLWindow("姜维传",640,480,16,fullscreen))
 	{
 		return 0;									// Quit If Window Was Not Created
 	}
@@ -766,6 +1237,7 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			{
 				Start();
 				Running();
+				Sleep(50);
 				SwapBuffers(hDC);	// Swap Buffers (Double Buffering)
 				
 			}

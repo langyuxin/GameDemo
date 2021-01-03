@@ -3,6 +3,7 @@
 #include <gl\gl.h>			// Header File For The OpenGL32 Library
 #include <gl\glu.h>			// Header File For The GLu32 Library
 #include <gl\glaux.h>		// Header File For The Glaux Library
+#include <time.h>
 #include "State.h"
 
 Action::Action()
@@ -10,7 +11,7 @@ Action::Action()
 //	InitialAct(x,y,z);
 }
 
-void Action::InitialAct(int x,int y,int z)		//动作类初始化
+void Action::InitialAct(float x,float y,float z)
 {
 	fps=0;
 	state=0;
@@ -18,32 +19,43 @@ void Action::InitialAct(int x,int y,int z)		//动作类初始化
 	Y=y;
 	Z=z;
 }
-
-void	Action::attack(int& c)					//人物攻击
+void Action::UpdatePos(float x,float y,float z)
 {
+	X=x;
+	Y=y;
+	Z=z;
+}
+void	Action::attack(int& c)
+{
+	float a;
+	if(texturetype==0) a=0.25f;
+	if(texturetype==1) a=0.1f;
 	if(fps<1)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(fps,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(fps+0.1f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(fps+0.1f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
+			glTexCoord2f(fps,1.0f);glVertex3f(X, Y+p_height,Z);					// Top Left
+			glTexCoord2f(fps+a,1.0f);glVertex3f( X+p_weight, Y+p_height, Z);					// Top Right
+			glTexCoord2f(fps+a,0.0f);glVertex3f(X+p_weight, Y, Z);					// Bottom Right
 			glTexCoord2f(fps,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
 		glEnd();
-		fps += 0.1f;
-		Sleep(30);
+		fps += a;
+	//	Sleep(20);
 	}
 	if(fps>=1) {state=0;fps=0;c=0;}
 }
-void	Action::move(int b)						//人物移动
+void	Action::move(int b)
 {
+	float a;
+	if(texturetype==0) a=0.25f;
+	if(texturetype==1) a=0.1f;
 	if(fps<1)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(fps,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(fps+0.1f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(fps+0.1f,0.0f);glVertex3f( X+2, Y, Z);					// Bottom Right
+			glTexCoord2f(fps,1.0f);glVertex3f(X, Y+p_height, Z);					// Top Left
+			glTexCoord2f(fps+a,1.0f);glVertex3f( X+p_weight, Y+p_height, Z);					// Top Right
+			glTexCoord2f(fps+a,0.0f);glVertex3f( X+p_weight, Y, Z);					// Bottom Right
 			glTexCoord2f(fps,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
 		glEnd();
 		GLfloat ac=0.05f;
@@ -51,70 +63,103 @@ void	Action::move(int b)						//人物移动
 		if(b==3) X += ac;
 		if(b==1) Z += ac;
 		if(b==0) Z -= ac;
-		fps += 0.1f;
-		Sleep(30);
+		fps += a;
+	//	Sleep(10);
 	}
+
 	if(fps>=1) {state=0;fps=0;}
 
 
 }
-void	Action::die()							//人物被击败
+void	Action::die()
 {
+	float a;
+	if(texturetype==0) a=0.33f;
+	if(texturetype==1) a=0.1f;
 	if(fps<1)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glBegin(GL_QUADS);									// Draw A Quad
-			glTexCoord2f(fps,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-			glTexCoord2f(fps+0.1f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-			glTexCoord2f(fps+0.1f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
+			glTexCoord2f(fps,1.0f);glVertex3f(X, Y+p_height, Z);					// Top Left
+			glTexCoord2f(fps+a,1.0f);glVertex3f( X+p_weight, Y+p_height, Z);					// Top Right
+			glTexCoord2f(fps+a,0.0f);glVertex3f(X+p_weight, Y, Z);					// Bottom Right
 			glTexCoord2f(fps,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
 		glEnd();
-		fps += 0.1f;
-		Sleep(30);
+		fps += a;
+	//	Sleep(20);
 	}
-	if(fps>=1) {state=0;fps=0;}
+	if(fps>=1) {fps=0;}
 
 }
-void	Action::jump(int b,int& c)				//人物跳跃
+void	Action::jump(int b,int& c)
 {
+	float a=0.1f;
 	if(fps<1)
 	{
-		GLfloat ac=0.05f,ad=0.5f;
-		if(fps<0.5f) Y +=ad;
-		if(fps>=0.5f || fps==0.75f) Y -=ad;
+		
+		GLfloat ac=0.1f,ad=0.2f;
+		if(fps<=0.2f) Y +=ad;
+		if(fps>=0.7f && fps<1.0f) Y -=ad;
 		glBindTexture(GL_TEXTURE_2D, texture);
 		if(c==0)
 		{
-			glBegin(GL_QUADS);									// Draw A Quad
-				glTexCoord2f(fps,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-				glTexCoord2f(fps+0.1f,1.0f);glVertex3f( X+2, Y+2, Z);					// Top Right
-				glTexCoord2f(fps+0.1f,0.0f);glVertex3f( X+2, Y, Z);					// Bottom Right
-				glTexCoord2f(fps,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
-			glEnd();
+			if(texturetype==0)
+			{
+				if(fps<0.5)
+				{
+					glBindTexture(GL_TEXTURE_2D, texture);
+					glBegin(GL_QUADS);									// Draw A Quad
+						glTexCoord2f(0.0f,1.0f);glVertex3f(X, Y+p_height, Z);					// Top Left
+						glTexCoord2f(0.5f,1.0f);glVertex3f( X+p_weight, Y+p_height, Z);					// Top Right
+						glTexCoord2f(0.5f,0.0f);glVertex3f(X+p_weight, Y, Z);					// Bottom Right
+						glTexCoord2f(0.0f,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
+					glEnd();
+				}
+				if(fps>=0.5)
+				{
+					glBindTexture(GL_TEXTURE_2D, texture);
+					glBegin(GL_QUADS);									// Draw A Quad
+						glTexCoord2f(0.5f,1.0f);glVertex3f(X, Y+p_height, Z);					// Top Left
+						glTexCoord2f(1.0f,1.0f);glVertex3f( X+p_weight, Y+p_height, Z);					// Top Right
+						glTexCoord2f(1.0f,0.0f);glVertex3f(X+p_weight, Y, Z);					// Bottom Right
+						glTexCoord2f(0.5f,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
+					glEnd();
+				}
+			}
+			if(texturetype==1)
+			{
+				glBindTexture(GL_TEXTURE_2D, texture);
+				glBegin(GL_QUADS);									// Draw A Quad
+					glTexCoord2f(fps,1.0f);glVertex3f(X, Y+p_height, Z);					// Top Left
+					glTexCoord2f(fps+a,1.0f);glVertex3f( X+p_weight, Y+p_height, Z);					// Top Right
+					glTexCoord2f(fps+a,0.0f);glVertex3f(X+p_weight, Y, Z);					// Bottom Right
+					glTexCoord2f(fps,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
+				glEnd();
+			}
 		}
 		if(c==1)
 		{
 			glBegin(GL_QUADS);									// Draw A Quad
-				glTexCoord2f(0.0f,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-				glTexCoord2f(1.0f,1.0f);glVertex3f(X+2, Y+2, Z);					// Top Right
-				glTexCoord2f(1.0f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
+				glTexCoord2f(0.0f,1.0f);glVertex3f(X, Y+p_height, Z);					// Top Left
+				glTexCoord2f(1.0f,1.0f);glVertex3f(X+p_weight, Y+p_height, Z);					// Top Right
+				glTexCoord2f(1.0f,0.0f);glVertex3f(X+p_weight, Y, Z);					// Bottom Right
 				glTexCoord2f(0.0f,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
 			glEnd();
 		}
 		if(b==2) X -= ac;
 		if(b==3) X += ac;
-		fps += 0.1f;
-		Sleep(100);
+		fps += a;
+	//	Sleep(10);
 	}
 	if(fps>=1) {state=0;fps=0;c=0;}
 }
-void	Action::still()									//人物处于静止状态
+void	Action::still()
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glBegin(GL_QUADS);									// Draw A Quad
-		glTexCoord2f(0.0f,1.0f);glVertex3f(X, Y+2, Z);					// Top Left
-		glTexCoord2f(1.0f,1.0f);glVertex3f(X+2, Y+2, Z);					// Top Right
-		glTexCoord2f(1.0f,0.0f);glVertex3f(X+2, Y, Z);					// Bottom Right
+		glTexCoord2f(0.0f,1.0f);glVertex3f(X, Y+p_height, Z);					// Top Left
+		glTexCoord2f(1.0f,1.0f);glVertex3f(X+p_weight, Y+p_height, Z);					// Top Right
+		glTexCoord2f(1.0f,0.0f);glVertex3f(X+p_weight, Y, Z);					// Bottom Right
 		glTexCoord2f(0.0f,0.0f);glVertex3f(X, Y, Z);					// Bottom Left
 	glEnd();
 

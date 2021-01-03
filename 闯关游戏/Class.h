@@ -2,6 +2,7 @@
 #include <gl\gl.h>			// Header File For The OpenGL32 Library
 #include <gl\glu.h>			// Header File For The GLu32 Library
 #include <gl\glaux.h>		// Header File For The Glaux Library
+#include <time.h>
 #include "State.h"
 
 #define ENEMY_DETECT_RANGE		10 //敌方探测范围
@@ -13,6 +14,14 @@
 #define HEIGHT_OF_JUMP			2//跳跃高度
 
 
+#define  p_height 0.6
+#define  p_weight 0.6
+#define  e_height 0.6
+#define  e_weight 0.6
+#define	b_weight 0.3
+#define b_height 0.3
+#define	t_weight 0.6
+#define t_height 0.6
 
 class  BaseObject				//人物基类
 {
@@ -70,7 +79,7 @@ protected:
 	GLuint	move[4];			//移动纹理，0,1,2,3对应w,s,a,d
 	GLuint	still[2];			//静止时纹理，0,1分别为向左，向右
 	GLuint	die;
-	Action	Act;				//人物动作的实现类
+	Action	Act;
 	int		movedirect;			//移动方向
 	int		attackstate;		//是否处于攻击状态：0：不是；1：是
 
@@ -81,14 +90,17 @@ class Player:public BaseObject
 {
 public:
 	Player(float x,float y,float z);
+	Player();
 	virtual ~Player();
 	void	act();
+	void	Initial(float x,float y,float z);
 
 	int		getScore()				{return Score;}
 	int		getRunSpeed()			{return RunSpeed;}
 
 	void	setScore(int a)			{Score=a;}
 	void	setRunSpeed(int b)		{RunSpeed=b;}
+	void	settexturetype(int a)		{Act.settexturetype(a);}
 	
 	void	setjump(GLuint a[4])	{jump[0]=a[0];jump[1]=a[1];jump[2]=a[2];jump[3]=a[3];}
 
@@ -102,13 +114,15 @@ class Enemy:public BaseObject
 {
 public:
 	Enemy(float x,float y,float z);
-	Enemy() {};
+	Enemy() ;
 	virtual ~Enemy();
 	void	act();
+	void	Initial(float x,float y,float z);
 
 	float	getDetectRange()		{return DetectRange;}
 	float	getTime()				{return Time;}
 	int		getRewardScore()		{return RewardScore;}
+	void	settexturetype(int a)		{Act.settexturetype(a);}
 
 
 
@@ -123,3 +137,89 @@ protected:
 	int		RewardScore;		//被击败奖励玩家的分数
 	float	Time;				//用于判定仇恨丢失的时间
 };
+
+
+class rectangle
+{
+public:
+	rectangle();
+	virtual ~rectangle();
+
+	void	InitialRec(float x,float y,float z,float w,float l);
+
+	float	getX()					{return X;}
+	void	setX(float x)			{X=x;}
+	float	getY()					{return Y;}
+	void	setY(float x)			{Y=x;}
+	float	getZ()					{return Z;}
+	void	setZ(float x)			{Z=x;}
+	float	getweight()					{return weight;}
+	void	setweight(float x)			{weight=x;}
+	float	getheight()					{return height;}
+	void	setheight(float x)			{height=x;}
+
+private:
+	float	X,Y,Z;				//长方形左下角的坐标
+
+	float	weight,height;		//长和宽
+
+};
+
+
+class Trap						//陷阱类：包括河流、坑
+{
+public:
+
+	void	setx(float a,float b)	{x1=a;x2=b;}
+	float	getx1()					{return x1;}
+	float	getx2()					{return x2;}
+private:
+	float	x1,x2;				//坑的前后坐标
+
+};
+
+class	Bullet
+{
+public:
+	void		Initial(float x,float y,float z);	
+	void		draw();
+
+	int			getdirect()							{return direct;}
+	float		getX()								{return X;}
+	float		getY()								{return Y;}
+	float		getZ()								{return Z;}
+	float		getspeed()							{return speed;}
+
+	void		setspeed(float a)					{speed=a;}	
+	void		setX(float a)						{X=a;}
+	void		setY(float a)						{Y=a;}
+	void		setZ(float a)						{Z=a;}
+	void		setbullet(GLuint a[2])				{bullet[0]=a[0];bullet[1]=a[1];}
+	void		setdirect(int a)					{direct=a;}
+
+private:
+	GLuint		bullet[2];
+	int			direct;
+	float		X,Y,Z;
+	float		speed;
+	float		fps;
+};
+
+class	Zhaoyun:public Enemy
+{
+public:
+	void	setdistance(float x)		{distance=x;}
+	float	getdistance()				{return distance;}
+	void	settime(float x)			{time=x;}
+	float	gettime()					{return time;}
+
+	void	setbullet(GLuint a[2])		{bullet.setbullet(a);}
+	void	setdirect(int a)			{bullet.setdirect(a);}
+
+private:
+	float	distance;			//离玩家的距离
+	float	time;				//前后摇时间
+	Bullet  bullet;				//发射的子弹
+
+};
+

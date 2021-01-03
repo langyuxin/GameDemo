@@ -96,6 +96,10 @@ SOURCE=.\Game.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\game1.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\GameManager.cpp
 # End Source File
 # Begin Source File
@@ -105,6 +109,10 @@ SOURCE=.\GameManager.h
 # Begin Source File
 
 SOURCE=.\Players.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Rectangle.cpp
 # End Source File
 # Begin Source File
 

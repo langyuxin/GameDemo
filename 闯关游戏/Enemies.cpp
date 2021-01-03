@@ -22,11 +22,35 @@ Enemy::Enemy(float x,float y,float z)
 }
 Enemy::~Enemy()
 {
+	
+}
+Enemy::Enemy()
+{
+	HP=50;
+	MP=0;
+	Speed=SPEED_OF_ENEMY;
+	TypeOfAttack=0;
+	Chances=1;
+	Strength=5;
+	Kind=0;;
+	DetectRange=ENEMY_DETECT_RANGE;
+	Time=5;
+	RewardScore=20;
+	attackstate=0;
+	Face=-1;
+}
 
+void Enemy::Initial(float x,float y,float z)
+{
+	X=x;
+	Y=y;
+	Z=z;
+	Act.InitialAct(x,y,z);
 }
 
 void Enemy::act()
 {
+	Act.UpdatePos(X,Y,Z);
 	if(Act.getstate()==0)	
 	{
 		if(Face==1)
@@ -58,12 +82,26 @@ void Enemy::act()
 		GLfloat ac=0.05f;
 		if(movedirect==0)
 		{
-			Act.settexture(move[0]);
+			if(Face==-1)
+			{
+				Act.settexture(move[2]);
+			}
+			if(Face==1)
+			{
+				Act.settexture(move[3]);
+			}
 			Z -= ac;
 		}
 		if(movedirect==1)
 		{
-			Act.settexture(move[1]);
+			if(Face==-1)
+			{
+				Act.settexture(move[2]);
+			}
+			if(Face==1)
+			{
+				Act.settexture(move[3]);
+			}
 			Z += ac;
 		}
 		if(movedirect==2)
@@ -80,6 +118,13 @@ void Enemy::act()
 		Act.move(movedirect);
 		if(Act.getfps()>=1) movedirect=-1;
 	}
-	if(Act.getstate()==3)	Act.die();
+	if(Act.getstate()==3)	
+	{
+		Act.settexture(die);
+		Act.die();
+	}
 	
 }
+
+
+
