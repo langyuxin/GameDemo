@@ -19,6 +19,10 @@
 
 #include "fmod.h"			// 音频库头文件
 
+//#include "freetype.h"		// 字体库
+
+// This holds all the information for the font that we are going to create.
+//freetype::font_data our_font;
 
 #pragma comment(lib,"FreeImaged.lib")
 #pragma comment(lib, "fmodvc.lib")
@@ -47,6 +51,8 @@ int	move,b,end=0;			//end来判断游戏结束与否；
 
 int emove,eb;				//地方角色行动判定参数
 GLfloat ea=10.0,ed=0,em=10;	//地方角色行动判定参数
+GLfloat	cnt1;				// 1st Counter Used To Move Text & For Coloring
+GLfloat	cnt2;				// 2nd Counter Used To Move Text & For Coloring
 
 GLfloat a=10.0,d=0,m=10;
 //FMUSIC_MODULE *sound_1;		//背景音乐指针
@@ -58,6 +64,47 @@ FSOUND_STREAM *sound_1;
 
 LRESULT	CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);	// Declaration For WndProc
 
+
+
+GLuint CreateTexture1(CString filename )
+{
+
+     GLuint      texture;     
+	
+	_AUX_RGBImageRec *Image;				
+
+    if(Image = auxDIBImageLoadA( (const char*) filename ))
+	{
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+   
+  		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+		gluBuild2DMipmaps(GL_TEXTURE_2D, 3, Image->sizeX,
+                              Image->sizeY, GL_RGB,
+                              GL_UNSIGNED_BYTE, Image->data);
+	}
+
+
+  
+   
+  	if(Image)
+	{										
+		if (Image->data)
+			delete Image->data;			
+		delete Image;
+	}
+	return texture;
+
+
+}
 GLuint CreateTexture(CString filename )					//创建纹理
 {
 
@@ -117,7 +164,59 @@ void LoadGLTextures()
 		texturee[3] = CreateTexture("Texture\\enemy_die.bmp");
 	
 		textureBg[0] = CreateTexture("Texture\\1.bmp");
-	
+		textureBg[1] = CreateTexture1("Texture\\bg1.bmp");
+}
+
+
+GLvoid BuildFont(GLvoid)								// Build Our Bitmap Font
+{
+	HFONT	font;										// Windows Font ID
+	HFONT	oldfont;									// Used For Good House Keeping
+
+	base = glGenLists(96);								// Storage For 96 Characters
+
+	font = CreateFont(	-24,							// Height Of Font
+						0,								// Width Of Font
+						0,								// Angle Of Escapement
+						0,								// Orientation Angle
+						FW_BOLD,						// Font Weight
+						FALSE,							// Italic
+						FALSE,							// Underline
+						FALSE,							// Strikeout
+						ANSI_CHARSET,					// Character Set Identifier
+						OUT_TT_PRECIS,					// Output Precision
+						CLIP_DEFAULT_PRECIS,			// Clipping Precision
+						ANTIALIASED_QUALITY,			// Output Quality
+						FF_DONTCARE|DEFAULT_PITCH,		// Family And Pitch
+						"Times New Roman");					// Font Name
+
+	oldfont = (HFONT)SelectObject(hDC, font);           // Selects The Font We Want
+	wglUseFontBitmaps(hDC, 32, 96, base);				// Builds 96 Characters Starting At Character 32
+	SelectObject(hDC, oldfont);							// Selects The Font We Want
+	DeleteObject(font);									// Delete The Font
+}
+
+GLvoid KillFont(GLvoid)									// Delete The Font List
+{
+	glDeleteLists(base, 96);							// Delete All 96 Characters
+}
+
+GLvoid glPrint(const char *fmt, ...)					// Custom GL "Print" Routine
+{
+	char		text[256];								// Holds Our String
+	va_list		ap;										// Pointer To List Of Arguments
+
+	if (fmt == NULL)									// If There's No Text
+		return;											// Do Nothing
+
+	va_start(ap, fmt);									// Parses The String For Variables
+	    vsprintf(text, fmt, ap);						// And Converts Symbols To Actual Numbers
+	va_end(ap);											// Results Are Stored In Text
+
+	glPushAttrib(GL_LIST_BIT);							// Pushes The Display List Bits
+	glListBase(base - 32);								// Sets The Base Character to 32
+	glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);	// Draws The Display List Text
+	glPopAttrib();										// Pops The Display List Bits
 }
 
 ///音乐初始化
@@ -131,56 +230,6 @@ GLvoid InitFMOD(GLvoid){
 }
 // 输出字体
 
-void BuildFontGL(GLvoid)												// 建立位图字体（Bitmap Fonts）
-{
-	HFONT	newFont;													// 用以保存新的字体对象
-	HFONT	oldFont;													// 用以保存原字体对象
-
-	base = glGenLists(256);												// 存储256个字符
-
-	newFont = CreateFont(	-45,										// 字体的高度
-							0,											// 字体的宽度
-							0,											// 旋转的角度
-							0,											// 定位角度
-							FW_THIN,									// 字体的粗细
-							FALSE,										// 斜体?
-							FALSE,										// 下划线?
-							FALSE,										// 删除线?
-							ANSI_CHARSET,								// 字符集
-							OUT_TT_PRECIS,								// 输出精度
-							CLIP_DEFAULT_PRECIS,						// 裁减精度
-							ANTIALIASED_QUALITY,						// 输出质量
-							FF_DONTCARE|DEFAULT_PITCH,					// 间距和字体族
-							"Georgia");									// 字体名称
-
-	oldFont = (HFONT)SelectObject(wglGetCurrentDC(), newFont); 			// 选进设备描述表 
-	wglUseFontBitmaps(wglGetCurrentDC(), 0, 256, base);					// 建立256个字符
-	SelectObject(wglGetCurrentDC(), oldFont);								// 恢复设备描述表
-	DeleteObject(newFont);												// 删除新字体
-}
-
-GLvoid KillFontGL(GLvoid)												// 删除保存字体的显示表
-{
-	glDeleteLists(base, 256);											// 删除256个字符
-}
-GLvoid glPrint(const char *pstr)									// 建立Print函数
-{
-/*	char		text[256];												// 用以保存格式化后的字符串
-	va_list		ap;														// 指向参数列表的指针
-
-	if (pstr == NULL)													// 没有可输出的字符？
-		return;															// 返回
-
-	va_start(ap, pstr);													// 遍历字符串，查找变量
-		vsprintf(text, pstr, ap);										// 将变量转换为显示的数字
-	va_end(ap);	*/														// 结果保存在text内
-
-	glPushAttrib(GL_LIST_BIT);											// 显示表状态入栈
-	glListBase(base -0);
-	glCallLists(strlen(pstr), GL_UNSIGNED_BYTE, pstr);	// 调用显示列表绘制字符串
-	glPopAttrib();				// 弹出属性堆栈
-									
-}
 
 // 声音释放
 GLvoid FreeFMOD(GLvoid)
@@ -224,9 +273,11 @@ int InitGL(GLvoid)										// All Setup For OpenGL Goes Here
 	glShadeModel(GL_SMOOTH);							// Enables Smooth Color Shading
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
 //	glEnable(GL_BLEND);
+	BuildFont();
 	InitFMOD();	
-	BuildFontGL();
-//	
+	
+//	our_font.init("test.TTF",16);
+
 	end=1;
 	return TRUE;										// Initialization Went OK
 }
@@ -272,25 +323,46 @@ void Running()
 void Start(){	//开始页面加载
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 	glLoadIdentity();	// Reset The Current Modelview Matrixf
-	gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
-	//	glTranslatef(0.0f, 0.0f, -1.0f);
-	//	glColor3f(1.0f, 1.0f, 0.0f); // 颜色
-	//	glRasterPos2f(-0.4f, 0.30f); // 输出位置
-
-	//	glPrint("Active OpenGL Text With NeHe ");  // 输出文字到屏幕
 		
+	gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
+			
 	glBindTexture(GL_TEXTURE_2D, textureBg[0]);
 	glBegin(GL_QUADS);									// Draw A Quad
 		glTexCoord2f(0.0,1.0);glVertex3f(-4.0f, 2.2f, 0.0f);					// Top Left
 		glTexCoord2f(1.0,1.0);glVertex3f( 4.0f, 2.2f, 0.0f);					// Top Right
 		glTexCoord2f(1.0,0.0);glVertex3f( 4.0f,-2.2f, 0.0f);					// Bottom Right
 		glTexCoord2f(0.0,0.0);glVertex3f(-4.0f,-2.2f, 0.0f);					// Bottom Left
-	
-		
+
 	glEnd();
 	
-	
 }
+
+void Text(GLvoid){
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
+		glLoadIdentity();	// Reset The Current Modelview Matrixf
+		gluLookAt(0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0, 1, 0);
+		
+		//glTranslatef(0.0f,0.0f,-1.0f);						// Move One Unit Into The Screen
+		// Blue Text
+	//	glColor3ub(0,0,0xff);
+
+		// Position The WGL Text On The Screen
+		//glRasterPos2f(-0.40f, 0.35f);
+		//glPrint("Active WGL Bitmap Text With NeHe - %7.2f", cnt1);	// Print GL Text To The Screen
+
+
+	//	cnt1+=0.051f;										// Increase The First Counter
+		glBindTexture(GL_TEXTURE_2D, textureBg[1]);
+	glBegin(GL_QUADS);									// Draw A Quad
+		glTexCoord2f(0.0,1.0);glVertex3f(-6.0f, 3.0f, 0.0f);					// Top Left
+		glTexCoord2f(1.0,1.0);glVertex3f( 6.0f, 3.0f, 0.0f);					// Top Right
+		glTexCoord2f(1.0,0.0);glVertex3f( 6.0f, -3.0f, 0.0f);					// Bottom Right
+		glTexCoord2f(0.0,0.0);glVertex3f(-6.0f, -3.0f, 0.0f);					// Bottom Left
+
+	glEnd();
+
+}
+
 void Ending()
 {
 		
@@ -354,7 +426,9 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 	glLoadIdentity();	// Reset The Current Modelview Matrixf
 	gluLookAt(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -2.0f, 0, 1, 0);
-		
+	
+
+
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glBegin(GL_QUADS);									// Draw A Quad
 		glTexCoord2f(0.0,1.0);glVertex3f(-3.0f, 4.0f, -5.0f);					// Top Left
@@ -378,7 +452,7 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 		Ending();
 	}
 
-	
+
 
 	return TRUE;										// Keep Going
 
@@ -703,11 +777,17 @@ int WINAPI WinMain(	HINSTANCE	hInstance,			// Instance
 			else									// Not Time To Quit, Update Screen
 			{
 				if(!keyStart){
-					Start();
+					Text();
+					//Start();
 					if(keys[' ']){
-						keyStart = true;
-						FSOUND_Stream_Play (0,sound_1);	
+						
+							keyStart = true;
+							FSOUND_Stream_Play (0,sound_1);	
+						
+						
+						Text();
 					}
+					
 					SwapBuffers(hDC);
 				}else{
 					Running();
