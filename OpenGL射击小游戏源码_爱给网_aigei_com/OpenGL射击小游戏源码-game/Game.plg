@@ -6,13 +6,13 @@
 --------------------Configuration: Game - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "C:\Users\lang\AppData\Local\Temp\RSP2CD5.tmp" with contents
+Creating temporary file "C:\Users\lang\AppData\Local\Temp\RSPA6C1.tmp" with contents
 [
 /nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/Game.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
 "F:\大四上\游戏开发\Final\GameDemo\OpenGL射击小游戏源码_爱给网_aigei_com\OpenGL射击小游戏源码-game\Game.cpp"
 ]
-Creating command line "cl.exe @C:\Users\lang\AppData\Local\Temp\RSP2CD5.tmp" 
-Creating temporary file "C:\Users\lang\AppData\Local\Temp\RSP2CD6.tmp" with contents
+Creating command line "cl.exe @C:\Users\lang\AppData\Local\Temp\RSPA6C1.tmp" 
+Creating temporary file "C:\Users\lang\AppData\Local\Temp\RSPA6C2.tmp" with contents
 [
 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /incremental:yes /pdb:"Debug/Game.pdb" /debug /machine:I386 /out:"Debug/Game.exe" /pdbtype:sept 
 ".\Debug\5DG_Window.obj"
@@ -20,12 +20,12 @@ kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32
 ".\Debug\Game.obj"
 ".\Debug\Texture.obj"
 ]
-Creating command line "link.exe @C:\Users\lang\AppData\Local\Temp\RSP2CD6.tmp"
+Creating command line "link.exe @C:\Users\lang\AppData\Local\Temp\RSPA6C2.tmp"
 <h3>Output Window</h3>
 Compiling...
 Game.cpp
-F:\大四上\游戏开发\Final\GameDemo\OpenGL射击小游戏源码_爱给网_aigei_com\OpenGL射击小游戏源码-game\Game.cpp(437) : warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-F:\大四上\游戏开发\Final\GameDemo\OpenGL射击小游戏源码_爱给网_aigei_com\OpenGL射击小游戏源码-game\Game.cpp(438) : warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+f:\大四上\游戏开发\final\gamedemo\opengl射击小游戏源码_爱给网_aigei_com\opengl射击小游戏源码-game\game.cpp(437) : warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+f:\大四上\游戏开发\final\gamedemo\opengl射击小游戏源码_爱给网_aigei_com\opengl射击小游戏源码-game\game.cpp(438) : warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
 Linking...
 
 
